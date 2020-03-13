@@ -22,6 +22,10 @@ affichage_grille: .asciiz "+---------------+---------------+---------------+----
 	.text
 	.globl main
 main: 
+	jal init_plateau
+	
+	li $v0, 10
+	syscall
 
 
 init_plateau:
@@ -30,18 +34,23 @@ init_plateau:
 	li $t4, 4
 	li $t5, 36 	# nb cases plateau
 init_plateau_FOR:
-	addi $t1, $t1, 1
-	sll $t2, $t2, 1 	# *2 pour half
+	sll $t2, $t1, 1 	# *2 pour half
 	add $t2, $t2, $t0 	# adresse de la nouvelle case
 	div $t3, $t1, $t4 	# indice mod 4
 	mfhi $t3
 	srl $t3, $t3, 1		# /2
 	addi $t3, $t3, 1	# +1
 	sh $t3, 0($t2)
+	
+	# debug
+	li $v0, 1
+	ori $a0, $t3, 0
+	syscall
+
+	addi $t1, $t1, 1
 	blt $t1, $t5, init_plateau_FOR
 init_plateau_END_FOR:
 	jr $ra
-
 
 
 
