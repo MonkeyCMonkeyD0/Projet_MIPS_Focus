@@ -1,21 +1,21 @@
 	.data
-plateau: .space 180
+plateau: .space 72	# stockage : un half pour une case soit 16 bits pour 5 pions => pion sur 2 bit [01] 1 (+) / [10] 2 (*) / [00] vide
 reserve: .byte 0, 0
-joueur_actuel: .byte 0
-	
-phrase_choix_case_depart_1_x: .asciiz "Indiquer la coordonnée x de départ pour le joueur 1 : "
-phrase_choix_case_depart_1_y: .asciiz "Indiquer la coordonnée y de départ pour le joueur 1 : "
-phrase_choix_case_depart_2_x: .asciiz "Indiquer la coordonnée x de départ pour le joueur 2 : "
-phrase_choix_case_depart_2_y: .asciiz "Indiquer la coordonnée y de départ pour le joueur 2 : "
-phrase_choix_case_arrive_1_x: .asciiz "Indiquer la coordonnée x d'arrivé pour le joueur 1 : "
-phrase_choix_case_arrive_1_y: .asciiz "Indiquer la coordonnée y d'arrivé pour le joueur 1 : "
-phrase_choix_case_arrive_2_x: .asciiz "Indiquer la coordonnée x d'arrivé pour le joueur 2 : "
-phrase_choix_case_arrive_2_y: .asciiz "Indiquer la coordonnée y d'arrivé pour le joueur 2 : "
-phrase_victoire_1: .asciiz "Felicitation qu joueur 1 qui a gagné !"
-phrase_victoire_2: .asciiz "Felicitation qu joueur 2 qui a gagné !"
+
+phrase_choix_case_depart_0_x: .asciiz "Indiquer la coordonnée x de départ pour le joueur 1 (+) : "
+phrase_choix_case_depart_0_y: .asciiz "Indiquer la coordonnée y de départ pour le joueur 1 (+) : "
+phrase_choix_case_depart_1_x: .asciiz "Indiquer la coordonnée x de départ pour le joueur 2 (*) : "
+phrase_choix_case_depart_1_y: .asciiz "Indiquer la coordonnée y de départ pour le joueur 2 (*) : "
+phrase_choix_case_arrive_0_x: .asciiz "Indiquer la coordonnée x d'arrivé pour le joueur 1 (+) : "
+phrase_choix_case_arrive_0_y: .asciiz "Indiquer la coordonnée y d'arrivé pour le joueur 1 (+) : "
+phrase_choix_case_arrive_1_x: .asciiz "Indiquer la coordonnée x d'arrivé pour le joueur 2 (*) : "
+phrase_choix_case_arrive_1_y: .asciiz "Indiquer la coordonnée y d'arrivé pour le joueur 2 (*) : "
 phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? "
-pion_1: .asciiz "[+]"
-pion_2: .asciiz "[*]"
+phrase_victoire_1: .asciiz "Felicitation qu joueur 1 (+) qui a gagné !"
+phrase_victoire_2: .asciiz "Felicitation qu joueur 2 (*) qui a gagné !"
+
+affichage_pions: .asciiz  "   ", "[+]", "[*]"
+affichage_grille: .asciiz "+---------------+---------------+---------------+---------------+---------------+---------------+", "|"
 
 .align 2
 
@@ -23,14 +23,27 @@ pion_2: .asciiz "[*]"
 	.globl main
 main: 
 
-init_plateau: 
-	la $t0, plateau
-	li $t9, 0x20
-	li $t8, 0x2A
-	li $t7, 0x2B
-	li $t1, 0
 
-FOR_init_plateau: 
+init_plateau:
+	la $t0, plateau
+	li $t1, 0 	# indice deplacement dans plateau
+	li $t4, 4
+	li $t5, 36 	# nb cases plateau
+init_plateau_FOR:
+	addi $t1, $t1, 1
+	sll $t2, $t2, 1 	# *2 pour half
+	add $t2, $t2, $t0 	# adresse de la nouvelle case
+	div $t3, $t1, $t4 	# indice mod 4
+	mfhi $t3
+	srl $t3, $t3, 1		# /2
+	addi $t3, $t3, 1	# +1
+	sh $t3, 0($t2)
+	blt $t1, $t5, init_plateau_FOR
+init_plateau_END_FOR:
+	jr $ra
+
+
+
 
 
 
