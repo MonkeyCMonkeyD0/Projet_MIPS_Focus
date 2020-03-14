@@ -1,4 +1,5 @@
 	.data
+
 plateau: .space 72	# stockage : un half pour une case soit 16 bits pour 5 pions => pion sur 2 bit [01] 1 (+) / [10] 2 (*) / [00] vide
 reserve: .byte 0, 0
 
@@ -19,8 +20,12 @@ affichage_grille: .asciiz "+---------------+---------------+---------------+----
 
 .align 2
 
+
+
 	.text
 	.globl main
+
+	
 main: 
 	jal init_plateau
 	
