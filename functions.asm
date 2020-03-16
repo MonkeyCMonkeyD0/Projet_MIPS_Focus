@@ -24,12 +24,12 @@
 	.align 2
 
 # ---------------------------------------------------------------------------
-# Public 	(.globl)
+# 		Public	 	(.globl)
 # ---------------------------------------------------------------------------
 
 
 	.globl init_plateau
-init_plateau:
+init_plateau: 			# NULL	
 
 	# Remplir le plateau de pieces pour le début de partie
 
@@ -75,7 +75,7 @@ ask_player_cell:		# num du joueur
 
 
 	.globl ask_player_nb_pieces
-ask_player_nb_pieces:		# coord case x, coord case y
+ask_player_nb_pieces:	# coord case x, coord case y
 
 	# Renvoie 0 si le joueur pose des pieces ou 1 si il en deplace
 	# Renvoie le nombre de pieces que le joueur actuel veut deplacer ou alors poser
@@ -86,7 +86,7 @@ ask_player_nb_pieces:		# coord case x, coord case y
 
 
 	.globl ask_player_direction
-ask_player_direction:		# coord case x, coord case y, nb pieces
+ask_player_direction:	# coord case x, coord case y, nb pieces
 
 	# Renvoie la direction voulu pour deplacer la pile de pieces du joueur actuel
 
@@ -95,16 +95,16 @@ ask_player_direction:		# coord case x, coord case y, nb pieces
 #--------------------#
 
 
-	.globl move_piece
-move_piece:			# NULL
+	.globl move_pieces
+move_piece:				# coord x-y depart, coord x-y arrivé, nb pieces
 
-	# 
+	# Deplace la piece dans le plateau memoire
 
 	jr $ra
 
 
 # ---------------------------------------------------------------------------
-# Private
+# 		Private
 # ---------------------------------------------------------------------------
 
 
@@ -112,9 +112,8 @@ print_new_line:			# NULL
 
 	# Affiche un saut de ligne dans la console
 
-nl: .asciiz "\n"
-	la $a0, nl
-	li $v0, 4
+	li $a0, '\n'
+	li $v0, 11
 	syscall
 	jr $ra
 
@@ -126,6 +125,28 @@ print_plateau:			# NULL
 	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
 
 	jr $ra
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
