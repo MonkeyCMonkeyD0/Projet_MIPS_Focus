@@ -113,8 +113,19 @@ print_new_line:			# NULL
 	# Affiche un saut de ligne dans la console
 
 nl: .asciiz "\n"
-	la $a0, nl
-	li $v0, 4
+	li $a0, nl
+	li $v0, 11
+	syscall
+	jr $ra
+
+#--------------------#
+
+print_pipe:
+
+	# Affiche une pipe (|) dans la console
+
+	li $a0, "|"
+	li $v0, 11
 	syscall
 	jr $ra
 
@@ -124,7 +135,35 @@ nl: .asciiz "\n"
 print_plateau:			# NULL
 
 	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
+	la $a0, plateau
+	la $a1, affichage_case
+	la $a2, affichage_grille
+	li $t0, 0 # Indice pour parcourir les lignes
+	li $t1, 180 # Indice final
+	li $t2, 6
+	li $t5, 5
 
+	print_plateau_FOR:
+	div $t0, $t2
+	mfhi $t3
+	bne $t3, $zero, print_plateau_NEXT_1 # Nie la condition
+	move $a0, $a2
+	li $v0, 4
+	syscall
+	jal print_new_line
+	jal print_pipe
+
+	print_plateau_NEXT_1:
+	jal print_pipe
+	bne $t3, $t5, print_plateau_FOR
+	jal print_new_line
+	bne $t0, $t1, print_plateau_FOR
+
+	print_plateau_END_FOR:
+	move $a0, $a2
+	li $v0, 4
+	syscall
+	jal print_new_line
 	jr $ra
 
 

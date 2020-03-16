@@ -20,7 +20,7 @@ phrase_victoire_1: .asciiz "Felicitation au "
 phrase_victoire_2: .asciiz " qui a gagné !"
 
 affichage_case: .asciiz  "   ", "[+]", "[*]", "-->", "<--"	# 4 char ascii par string : 4 octets pour décallage
-affichage_grille: .asciiz "|", "+------------------+------------------+------------------+------------------+------------------+------------------+"	# 2 ascii : 2 octets décallage
+affichage_grille: .asciiz "+------------------+------------------+------------------+------------------+------------------+------------------+"	# 2 ascii : 2 octets décallage
 
 
 # ---------------------------------------------------------------------------
