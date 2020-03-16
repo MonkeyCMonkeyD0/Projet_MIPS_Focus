@@ -1,4 +1,11 @@
+# ---------------------------------------------------------------------------
+# DATA SEGMENT
+#
+# Data used by the program is declared in the data segment.
+# ---------------------------------------------------------------------------
+
 	.data
+	.align 0
 
 plateau: .space 72	# stockage : un half pour une case soit 16 bits pour 5 pions => pion sur 2 bit [01] 1 (+) / [10] 2 (*) / [00] vide
 reserve: .byte 0, 0
@@ -15,25 +22,61 @@ phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? 
 phrase_victoire_1: .asciiz "Felicitation qu joueur 1 (+) qui a gagné !"
 phrase_victoire_2: .asciiz "Felicitation qu joueur 2 (*) qui a gagné !"
 
-affichage_pions: .asciiz  "   ", "[+]", "[*]"
-affichage_grille: .asciiz "+---------------+---------------+---------------+---------------+---------------+---------------+", "|"
+affichage_pions: .asciiz  "   ", "[+]", "[*]"		# 4 char ascii par string : 4 octets pour décallage
+affichage_grille: .asciiz "|", "+---------------+---------------+---------------+---------------+---------------+---------------+"	# 2 ascii : 2 octets décallage
 
-.align 2
+affichage_saut_ligne: .asciiz "\n"
 
 
+# ---------------------------------------------------------------------------
+# MAIN SEGMENT
+#
+# Text segment (code) for the program.
+# ---------------------------------------------------------------------------
 
 	.text
+	.align 2
 	.globl main
 
-	
-main: 
+main:
+
+	# fonction main qui sera appelé au lancement du programme pour executer le jeu
+
 	jal init_plateau
 	
 	li $v0, 10
-	syscall
+	syscall		# Instruction de fin de programme
 
+
+# ---------------------------------------------------------------------------
+# FUNCTIONS SEGMENT
+#
+# Text segment (code) for the program.
+#
+#
+#	Rules :
+#
+# The caller is responsible for saving and restoring any of the following
+# caller-saved registers that it cares about.
+# 	$t0-$t9		$a0-$a3		$v0-$v1
+#
+# The callee is responsible for saving and restoring any of the following
+# callee-saved registers that it uses. (Remember that $ra is “used” by jal.)
+#	$s0-$s7		$ra
+#
+# Registers $a0–$a3 (4–7) are used to pass the first four arguments to routines
+# (remaining arguments are passed on the stack). Registers $v0 and $v1
+# (2,3) are used to return values from functions.
+#
+# ---------------------------------------------------------------------------
+
+	.text
+	.align 2
 
 init_plateau:
+
+	# Remplir le plateau de pieces pour le début de partie
+
 	la $t0, plateau
 	li $t1, 0 	# indice deplacement dans plateau
 	li $t4, 4
@@ -46,16 +89,26 @@ init_plateau_FOR:
 	srl $t3, $t3, 1		# /2
 	addi $t3, $t3, 1	# +1
 	sh $t3, 0($t2)
-	
-	# debug
-	li $v0, 1
-	ori $a0, $t3, 0
-	syscall
-
 	addi $t1, $t1, 1
 	blt $t1, $t5, init_plateau_FOR
 init_plateau_END_FOR:
 	jr $ra
+
+#--------------------#
+
+print_new_line:
+
+	# Faire un saut de ligne dans la console
+
+	la $a0, affichage_saut_ligne
+	li $v0, 4
+	syscall
+	jr $ra
+
+#--------------------#
+
+
+
 
 
 
