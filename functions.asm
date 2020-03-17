@@ -1,4 +1,33 @@
 # ---------------------------------------------------------------------------
+# DATA SEGMENT
+#
+# Data (Strings) used by functions is declared in this data segment.
+# ---------------------------------------------------------------------------
+	.data
+	.align 0
+
+noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)"
+
+phrase_choix_case_1: .asciiz "Indiquer la coordonnée "
+phrase_choix_case_2: .asciiz " de la case de depart pour le "
+phrase_choix_case_3: .asciiz " : "
+coord_x_y: .asciiz "x", "y"
+
+phrase_choix_direction_1: .asciiz "Indiquer la direction souhaité ("
+phrase_choix_direction_2: .asciiz ") : "
+directions: .asciiz "^ (8)", "> (4)", "< (6)", "v (2)"
+
+phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? "
+
+phrase_victoire_1: .asciiz "Felicitation au "
+phrase_victoire_2: .asciiz " qui a gagné !"
+
+affichage_case: .asciiz  "   ", "[+]", "[*]", "-->", "<--"	# 4 char ascii par string : 4 octets pour décallage
+affichage_grille: .asciiz "+------------------+------------------+------------------+------------------+------------------+------------------+"	# 2 ascii : 2 octets décallage
+
+	.align 2
+
+# ---------------------------------------------------------------------------
 # FUNCTIONS SEGMENT
 #
 # Text segment (function code) for the program.
@@ -21,7 +50,6 @@
 # ---------------------------------------------------------------------------
 
 	.text
-	.align 2
 
 # ---------------------------------------------------------------------------
 # 		Public	 	(.globl)
@@ -96,7 +124,7 @@ ask_player_direction:			# coord case x, coord case y, nb pieces
 
 
 	.globl move_pieces
-move_piece:				# coord x-y depart, coord x-y arrivé, nb pieces
+move_pieces:				# coord x-y depart, coord x-y arrivé, nb pieces
 
 	# Met a jour la memoire pour representer le deplacement des pieces
 
@@ -119,6 +147,7 @@ print_new_line:				# NULL
 
 #--------------------#
 
+
 print_pipe:				# NULL
 
 	# Affiche une pipe (|) dans la console
@@ -130,8 +159,7 @@ print_pipe:				# NULL
 
 #--------------------#
 
-
-
+	.globl print_plateau
 print_plateau:				# NULL
 
 	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
@@ -141,14 +169,15 @@ print_plateau:				# NULL
 	la $a3, affichage_case
 	li $t0, 0	# Indice pour parcourir les lignes
 	li $t1, 36	# Indice final
-	li $t2, 6
-	li $t5, 5
+	li $t2, 6	# nb modulo
+	li $t3, 5	# modulo du dernier element d'une ligne
 	move $t9, $ra
 
 print_plateau_FOR:
+	li $t2, 6
 	div $t0, $t2
-	mfhi $t3
-	bne $t3, $zero, print_plateau_NEXT_1
+	mfhi $t4
+	bne $t4, $zero, print_plateau_NEXT
 
 	move $a0, $a2
 	li $v0, 4
@@ -156,11 +185,59 @@ print_plateau_FOR:
 	jal print_new_line
 	jal print_pipe
 
-print_plateau_NEXT_1:
+print_plateau_NEXT:
+	li $v0, 4
+	sll $t5, $t0, 1
+	add $t5, $t5, $a1
+	lh $t5, 0($t5)		
+	li $t2, 4
+	div $t5, $t2
+	mfhi $t6	
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3
+	syscall
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	li $t2, 4
+	div $t5, $t2
+	mfhi $t6		# mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	li $t2, 4
+	div $t5, $t2
+	mfhi $t6		# mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	li $t2, 4
+	div $t5, $t2
+	mfhi $t6		# mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	li $t2, 4
+	div $t5, $t2
+	mfhi $t6		# mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall
+
+	addi $a0, $a3, 16	# print "-->"
+	syscall
+
+	addi $t0, $t0, 1
+
 	jal print_pipe
-	bne $t3, $t5, print_plateau_FOR
+	bne $t4, $t3, print_plateau_FOR
 	jal print_new_line
-	bne $t0, $t1, print_plateau_FOR
+	blt $t0, $t1, print_plateau_FOR
 
 print_plateau_END_FOR:
 	move $a0, $a2
@@ -168,7 +245,7 @@ print_plateau_END_FOR:
 	syscall
 	jal print_new_line
 
-	jr $ra
+	jr $t9
 
 
 
