@@ -29,7 +29,7 @@
 
 
 	.globl init_plateau
-init_plateau: 			# NULL	
+init_plateau: 				# NULL	
 
 	# Remplir le plateau de pieces pour le début de partie
 
@@ -54,7 +54,7 @@ init_plateau_END_FOR:
 
 
 	.globl print_game_state
-print_game_state:		# NULL
+print_game_state:			# NULL
 
 	# Affiche l'etat complet du jeu
 
@@ -64,7 +64,7 @@ print_game_state:		# NULL
 
 
 	.globl ask_player_cell
-ask_player_cell:		# num du joueur 
+ask_player_cell:			# num du joueur 
 
 	# Renvoie la coordonnée x de la case valide selectionnée
 	# Renvoie la coordonnée y de la case valide selectionnée
@@ -75,7 +75,7 @@ ask_player_cell:		# num du joueur
 
 
 	.globl ask_player_nb_pieces
-ask_player_nb_pieces:	# coord case x, coord case y
+ask_player_nb_pieces:			# coord case x, coord case y
 
 	# Renvoie 0 si le joueur pose des pieces ou 1 si il en deplace
 	# Renvoie le nombre de pieces que le joueur actuel veut deplacer ou alors poser
@@ -86,7 +86,7 @@ ask_player_nb_pieces:	# coord case x, coord case y
 
 
 	.globl ask_player_direction
-ask_player_direction:	# coord case x, coord case y, nb pieces
+ask_player_direction:			# coord case x, coord case y, nb pieces
 
 	# Renvoie la direction voulu pour deplacer la pile de pieces du joueur actuel
 
@@ -98,7 +98,7 @@ ask_player_direction:	# coord case x, coord case y, nb pieces
 	.globl move_pieces
 move_piece:				# coord x-y depart, coord x-y arrivé, nb pieces
 
-	# Deplace la piece dans le plateau memoire
+	# Met a jour la memoire pour representer le deplacement des pieces
 
 	jr $ra
 
@@ -108,7 +108,7 @@ move_piece:				# coord x-y depart, coord x-y arrivé, nb pieces
 # ---------------------------------------------------------------------------
 
 
-print_new_line:			# NULL
+print_new_line:				# NULL
 
 	# Affiche un saut de ligne dans la console
 
@@ -120,10 +120,96 @@ print_new_line:			# NULL
 #--------------------#
 
 
-print_plateau:			# NULL
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+print_pipe:				# NULL
+
+	# Affiche un pipe (|) dans la console
+
+	li $a0, '|'
+	li $v0, 11
+	syscall
+	jr $ra
+
+#--------------------#
+
+
+print_plateau:				# NULL
 
 	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
 
+	la $a1, plateau
+	la $a2, affichage_grille
+	la $a3, affichage_case
+	li $t0, 0
+	li $t1, 36
+	li $t2, 6
+	li $t5, 5
+	move $t9, $ra
+
+print_plateau_FOR:
+	div $t0, $t2
+	mfhi $t3
+	bne $t3, $zero, print_plateau_NEXT_1
+	move $a0, $a2
+	li $v0, 4
+	syscall
+	jal print_new_line
+	jal print_pipe
+
+print_plateau_NEXT_1:
+	
+	
+	jal print_pipe
+	bne $t3, $t5, print_plateau_FOR
+	jal print_new_line
+	bne $t0, $t1, print_plateau_FOR
+
+print_plateau_END_FOR:
+	move $a0, $a2
+	li $v0, 4
+	syscall
+	jal print_new_line
+	
 	jr $ra
 
 
