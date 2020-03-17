@@ -28,6 +28,12 @@ main:
 	# fonction main qui sera appelé au lancement du programme pour executer le jeu
 
 	jal init_plateau
+
+	li $a0, 3
+	li $a1, 1
+	li $a2, 6
+	li $a3, 4
+
 	jal print_plateau
 	
 	li $v0, 10

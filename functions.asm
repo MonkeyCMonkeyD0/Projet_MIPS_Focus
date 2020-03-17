@@ -160,25 +160,32 @@ print_pipe:				# NULL
 #--------------------#
 
 	.globl print_plateau
-print_plateau:				# NULL
+print_plateau:				# coord x debut, coord y debut, coord x fin, coord y fin
 
 	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
+
+	sub $sp, $sp, 20	# move stack pointer
+	sw $ra, 16($sp)		# save $ra in stack
+	sw $a0, 12($sp)		# save $a0 in stack
+	sw $a1, 8($sp)		# save $a1 in stack
+	sw $a2, 4($sp)		# save $a2 in stack
+	sw $a3, 0($sp)		# save $a3 in stack
 
 	la $a1, plateau
 	la $a2, affichage_grille
 	la $a3, affichage_case
-	li $t0, 0	# Indice pour parcourir les lignes
-	li $t1, 36	# Indice final
-	li $t2, 6	# nb modulo
-	li $t3, 5	# modulo du dernier element d'une ligne
-	move $t9, $ra
+	li $t0, 0		# Indice pour parcourir les lignes
+	li $t1, 36		# Indice final
+	li $t2, 6		# nb modulo
+	li $t3, 5		# modulo du dernier element d'une ligne
+	
 
 print_plateau_FOR:
 	li $t2, 6
 	div $t0, $t2
 	mfhi $t4
 	bne $t4, $zero, print_plateau_NEXT
-
+				# si au debut d'une ligne on print la ligne et un \n
 	move $a0, $a2
 	li $v0, 4
 	syscall
@@ -195,7 +202,7 @@ print_plateau_NEXT:
 	mfhi $t6	
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3
-	syscall
+	syscall			# premier pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
 	li $t2, 4
@@ -203,7 +210,7 @@ print_plateau_NEXT:
 	mfhi $t6		# mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall
+	syscall			# second pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
 	li $t2, 4
@@ -211,7 +218,7 @@ print_plateau_NEXT:
 	mfhi $t6		# mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall
+	syscall			# 3eme pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
 	li $t2, 4
@@ -219,7 +226,7 @@ print_plateau_NEXT:
 	mfhi $t6		# mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall
+	syscall			# 4eme pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
 	li $t2, 4
@@ -227,9 +234,45 @@ print_plateau_NEXT:
 	mfhi $t6		# mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall
+	syscall			# dernier pion de la case
 
-	addi $a0, $a3, 16	# print "-->"
+	lw $t6, 12($sp)		# recupere la coord x du depart
+	sub $t6, $t6, 1
+	lw $t5, 8($sp)		# recupere la coord y du depart
+	sub $t5, $t5, 1
+	sll $t5, $t5, 1		# *2
+	add $t6, $t6, $t5	# $t6 + 6*$t5 = $t6 + 2*$t5 + 2*2*$t5
+	sll $t5, $t5, 1		# *2
+	add $t6, $t6, $t5	# $t6 = case de depart
+
+	beq $t6, $t0, print_plateau_SWITCH_1
+
+	lw $t6, 4($sp)		# recupere la coord x de l'arrive
+	sub $t6, $t6, 1
+	lw $t5, 0($sp)		# recupere la coord y de l'arrive
+	sub $t5, $t5, 1
+	sll $t5, $t5, 1		# *2
+	add $t6, $t6, $t5	# $t6 + 6*$t5 = $t6 + 2*$t5 + 2*2*$t5
+	sll $t5, $t5, 1		# *2
+	add $t6, $t6, $t5	# $t6 = case de depart
+
+	beq $t6, $t0, print_plateau_SWITCH_2
+
+	j print_plateau_SWITCH_default
+
+print_plateau_SWITCH_1:
+	addi $a0, $a3, 12	# print "-->"
+	j print_plateau_SWITCH_END
+
+print_plateau_SWITCH_2:
+	addi $a0, $a3, 16	# print "<--"
+	j print_plateau_SWITCH_END
+
+print_plateau_SWITCH_default:
+	addi $a0, $a3, 0	# print "   "
+	j print_plateau_SWITCH_END
+
+print_plateau_SWITCH_END:
 	syscall
 
 	addi $t0, $t0, 1
@@ -245,7 +288,14 @@ print_plateau_END_FOR:
 	syscall
 	jal print_new_line
 
-	jr $t9
+	#lw $a0, 12($sp)	# take $a0 from stack
+	#lw $a1, 8($sp)		# take $a1 from stack
+	#lw $a2, 4($sp)		# take $a2 from stack
+	#lw $a3, 0($sp)		# take $a3 from stack
+
+	lw $ra, 16($sp)		# take $ra from stack
+	addi $sp, $sp, 20	# move stack pointer
+	jr $ra
 
 
 
