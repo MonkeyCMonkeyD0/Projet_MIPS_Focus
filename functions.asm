@@ -119,51 +119,9 @@ print_new_line:				# NULL
 
 #--------------------#
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 print_pipe:				# NULL
 
-	# Affiche un pipe (|) dans la console
+	# Affiche une pipe (|) dans la console
 
 	li $a0, '|'
 	li $v0, 11
@@ -173,6 +131,7 @@ print_pipe:				# NULL
 #--------------------#
 
 
+
 print_plateau:				# NULL
 
 	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
@@ -180,8 +139,8 @@ print_plateau:				# NULL
 	la $a1, plateau
 	la $a2, affichage_grille
 	la $a3, affichage_case
-	li $t0, 0
-	li $t1, 36
+	li $t0, 0	# Indice pour parcourir les lignes
+	li $t1, 36	# Indice final
 	li $t2, 6
 	li $t5, 5
 	move $t9, $ra
@@ -190,6 +149,7 @@ print_plateau_FOR:
 	div $t0, $t2
 	mfhi $t3
 	bne $t3, $zero, print_plateau_NEXT_1
+
 	move $a0, $a2
 	li $v0, 4
 	syscall
@@ -197,8 +157,6 @@ print_plateau_FOR:
 	jal print_pipe
 
 print_plateau_NEXT_1:
-	
-	
 	jal print_pipe
 	bne $t3, $t5, print_plateau_FOR
 	jal print_new_line
@@ -209,7 +167,7 @@ print_plateau_END_FOR:
 	li $v0, 4
 	syscall
 	jal print_new_line
-	
+
 	jr $ra
 
 
