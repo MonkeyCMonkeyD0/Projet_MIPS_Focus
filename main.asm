@@ -34,7 +34,7 @@ main:
 	li $a2, 6
 	li $a3, 4
 
-	jal print_game_state
+	jal print_game
 	
 	li $v0, 10
 	syscall		# Instruction de fin de programme

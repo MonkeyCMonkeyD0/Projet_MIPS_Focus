@@ -3,6 +3,7 @@
 #
 # Data (Strings) used by functions is declared in this data segment.
 # ---------------------------------------------------------------------------
+
 	.data
 	.align 0
 
@@ -10,6 +11,9 @@ affichage_case: .asciiz  "   ", "[+]", "[*]", "-->", "<--"	# 4 char ascii par st
 affichage_grille: .asciiz "+------------------+------------------+------------------+------------------+------------------+------------------+"
 
 affichage_stock: .asciiz " - le ", " possede ", " pieces en reserve." # 7 char, 10 char
+
+phrase_victoire_1: .asciiz "Felicitation au "
+phrase_victoire_2: .asciiz " qui a gagné !"
 
 	.align 2
 
@@ -41,7 +45,7 @@ affichage_stock: .asciiz " - le ", " possede ", " pieces en reserve." # 7 char, 
 # 		Public	 	(.globl)
 # ---------------------------------------------------------------------------
 
-	.globl print_game_state
+	.globl print_game
 print_game_state:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
 
 	# Affiche l'etat complet du jeu
@@ -56,7 +60,41 @@ print_game_state:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fi
 	add $sp, $sp, 4		# move stack pointer
 	jr $ra
 
+
 #--------------------#
+
+	.globl print_winner
+print_winner: 				# $a0 = joueur gagnant
+
+	# Affiche le joueur gagnant
+
+	jr $ra
+
+
+#--------------------#
+
+	.globl print_new_line
+print_new_line:				# NULL
+
+	# Affiche un saut de ligne dans la console
+
+	li $a0, '\n'
+	li $v0, 11
+	syscall
+	jr $ra
+
+
+#--------------------#
+
+	.globl print_pipe
+print_pipe:				# NULL
+
+	# Affiche une pipe (|) dans la console
+
+	li $a0, '|'
+	li $v0, 11
+	syscall
+	jr $ra
 
 
 # ---------------------------------------------------------------------------
@@ -194,6 +232,7 @@ print_plateau_END_FOR:
 	addi $sp, $sp, 20	# move stack pointer
 	jr $ra
 
+
 #--------------------#
 
 print_stock:		# NULL
@@ -252,5 +291,6 @@ print_stock:		# NULL
 	lw $ra, 0($sp)			# save $ra in stack
 	addi $sp, $sp, 4		# move stack pointer
 	jr $ra
+
 
 #--------------------#

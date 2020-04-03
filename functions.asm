@@ -3,28 +3,12 @@
 #
 # Data (Strings) used by functions is declared in this data segment.
 # ---------------------------------------------------------------------------
+
 	.data
 	.align 0
 
 	.globl noms_joueurs
 noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)" 	# 13 char
-
-phrase_choix_case_1: .asciiz "Indiquer la coordonnée "
-phrase_choix_case_2: .asciiz " de la case de depart pour le "
-phrase_choix_case_3: .asciiz " : "
-# coord_x_y: .asciiz "x", "y"
-
-phrase_choix_direction_1: .asciiz "Indiquer la direction souhaité ("
-phrase_choix_direction_2: .asciiz ") : "
-directions: .asciiz "^ (8)", "> (4)", "< (6)", "v (2)"
-
-phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? "
-
-phrase_victoire_1: .asciiz "Felicitation au "
-phrase_victoire_2: .asciiz " qui a gagné !"
-
-affichage_case: .asciiz  "   ", "[+]", "[*]", "-->", "<--"	# 4 char ascii par string : 4 octets pour décallage
-affichage_grille: .asciiz "+------------------+------------------+------------------+------------------+------------------+------------------+"
 
 	.align 2
 
@@ -56,7 +40,6 @@ affichage_grille: .asciiz "+------------------+------------------+--------------
 # 		Public	 	(.globl)
 # ---------------------------------------------------------------------------
 
-
 	.globl init_plateau
 init_plateau: 				# NULL	
 
@@ -79,40 +62,8 @@ init_plateau_FOR:
 init_plateau_END_FOR:
 	jr $ra
 
-#--------------------#
-
-
-	.globl ask_player_cell
-ask_player_cell:			# $a0 = num du joueur 
-
-	# $v0 = Renvoie la coordonnée x de la case valide selectionnée
-	# $v1 = Renvoie la coordonnée y de la case valide selectionnée
-
-	jr $ra
 
 #--------------------#
-
-
-	.globl ask_player_nb_pieces
-ask_player_nb_pieces:			# $a0 = coord case x, $a1 = coord case y
-
-	# $v0 = Renvoie 0 si le joueur pose des pieces ou 1 si il en deplace
-	# $v1 = Renvoie le nombre de pieces que le joueur actuel veut deplacer ou alors poser
-
-	jr $ra
-
-#--------------------#
-
-
-	.globl ask_player_direction
-ask_player_direction:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb pieces
-
-	# $v0 = Renvoie la direction voulu pour deplacer la pile de pieces du joueur actuel
-
-	jr $ra
-
-#--------------------#
-
 
 	.globl move_pieces
 move_pieces:				# $a0 = coord x-y depart, $a1 = coord x-y arrivé, $a2 = nb pieces
@@ -123,31 +74,21 @@ move_pieces:				# $a0 = coord x-y depart, $a1 = coord x-y arrivé, $a2 = nb piec
 	jr $ra
 
 
+#--------------------#
+
+	.globl test_victory
+test_victory: 				# NULL
+
+	# Test si un des joueur à gagné
+
+	jr $ra
+
+
 # ---------------------------------------------------------------------------
 # 		Private
 # ---------------------------------------------------------------------------
 
-	.globl print_new_line
-print_new_line:				# NULL
-
-	# Affiche un saut de ligne dans la console
-
-	li $a0, '\n'
-	li $v0, 11
-	syscall
-	jr $ra
-
-#--------------------#
-
-	.globl print_pipe
-print_pipe:				# NULL
-
-	# Affiche une pipe (|) dans la console
-
-	li $a0, '|'
-	li $v0, 11
-	syscall
-	jr $ra
+	
 
 #--------------------#
 
