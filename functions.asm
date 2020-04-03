@@ -6,12 +6,13 @@
 	.data
 	.align 0
 
-noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)"
+	.globl noms_joueurs
+noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)" 	# 13 char
 
 phrase_choix_case_1: .asciiz "Indiquer la coordonnée "
 phrase_choix_case_2: .asciiz " de la case de depart pour le "
 phrase_choix_case_3: .asciiz " : "
-coord_x_y: .asciiz "x", "y"
+# coord_x_y: .asciiz "x", "y"
 
 phrase_choix_direction_1: .asciiz "Indiquer la direction souhaité ("
 phrase_choix_direction_2: .asciiz ") : "
@@ -23,7 +24,7 @@ phrase_victoire_1: .asciiz "Felicitation au "
 phrase_victoire_2: .asciiz " qui a gagné !"
 
 affichage_case: .asciiz  "   ", "[+]", "[*]", "-->", "<--"	# 4 char ascii par string : 4 octets pour décallage
-affichage_grille: .asciiz "+------------------+------------------+------------------+------------------+------------------+------------------+"	# 2 ascii : 2 octets décallage
+affichage_grille: .asciiz "+------------------+------------------+------------------+------------------+------------------+------------------+"
 
 	.align 2
 
@@ -37,11 +38,11 @@ affichage_grille: .asciiz "+------------------+------------------+--------------
 #
 # The caller is responsible for saving and restoring any of the following
 # caller-saved registers that it cares about.
-# 	$t0-$t9		$a0-$a3		$v0-$v1
+# 		$t0-$t9			$a0-$a3			$v0-$v1
 #
 # The callee is responsible for saving and restoring any of the following
 # callee-saved registers that it uses. (Remember that $ra is “used” by jal.)
-#	$s0-$s7		$ra
+#				$s0-$s7				$ra
 #
 # Registers $a0–$a3 (4–7) are used to pass the first four arguments to routines
 # (remaining arguments are passed on the stack). Registers $v0 and $v1
@@ -81,21 +82,11 @@ init_plateau_END_FOR:
 #--------------------#
 
 
-	.globl print_game_state
-print_game_state:			# NULL
-
-	# Affiche l'etat complet du jeu
-
-	jr $ra
-
-#--------------------#
-
-
 	.globl ask_player_cell
-ask_player_cell:			# num du joueur 
+ask_player_cell:			# $a0 = num du joueur 
 
-	# Renvoie la coordonnée x de la case valide selectionnée
-	# Renvoie la coordonnée y de la case valide selectionnée
+	# $v0 = Renvoie la coordonnée x de la case valide selectionnée
+	# $v1 = Renvoie la coordonnée y de la case valide selectionnée
 
 	jr $ra
 
@@ -103,10 +94,10 @@ ask_player_cell:			# num du joueur
 
 
 	.globl ask_player_nb_pieces
-ask_player_nb_pieces:			# coord case x, coord case y
+ask_player_nb_pieces:			# $a0 = coord case x, $a1 = coord case y
 
-	# Renvoie 0 si le joueur pose des pieces ou 1 si il en deplace
-	# Renvoie le nombre de pieces que le joueur actuel veut deplacer ou alors poser
+	# $v0 = Renvoie 0 si le joueur pose des pieces ou 1 si il en deplace
+	# $v1 = Renvoie le nombre de pieces que le joueur actuel veut deplacer ou alors poser
 
 	jr $ra
 
@@ -114,9 +105,9 @@ ask_player_nb_pieces:			# coord case x, coord case y
 
 
 	.globl ask_player_direction
-ask_player_direction:			# coord case x, coord case y, nb pieces
+ask_player_direction:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb pieces
 
-	# Renvoie la direction voulu pour deplacer la pile de pieces du joueur actuel
+	# $v0 = Renvoie la direction voulu pour deplacer la pile de pieces du joueur actuel
 
 	jr $ra
 
@@ -124,7 +115,8 @@ ask_player_direction:			# coord case x, coord case y, nb pieces
 
 
 	.globl move_pieces
-move_pieces:				# coord x-y depart, coord x-y arrivé, nb pieces
+move_pieces:				# $a0 = coord x-y depart, $a1 = coord x-y arrivé, $a2 = nb pieces
+							# $a0 = coord x depart, $ a1 = coord y depart, $a2 = coord x arrivé, $a3 = coord y arrivé, nb pieces
 
 	# Met a jour la memoire pour representer le deplacement des pieces
 
@@ -135,7 +127,7 @@ move_pieces:				# coord x-y depart, coord x-y arrivé, nb pieces
 # 		Private
 # ---------------------------------------------------------------------------
 
-
+	.globl print_new_line
 print_new_line:				# NULL
 
 	# Affiche un saut de ligne dans la console
@@ -147,7 +139,7 @@ print_new_line:				# NULL
 
 #--------------------#
 
-
+	.globl print_pipe
 print_pipe:				# NULL
 
 	# Affiche une pipe (|) dans la console
@@ -159,143 +151,27 @@ print_pipe:				# NULL
 
 #--------------------#
 
-	.globl print_plateau
-print_plateau:				# coord x debut, coord y debut, coord x fin, coord y fin
 
-	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
 
-	sub $sp, $sp, 20	# move stack pointer
-	sw $ra, 16($sp)		# save $ra in stack
-	sw $a0, 12($sp)		# save $a0 in stack
-	sw $a1, 8($sp)		# save $a1 in stack
-	sw $a2, 4($sp)		# save $a2 in stack
-	sw $a3, 0($sp)		# save $a3 in stack
 
-	la $a1, plateau
-	la $a2, affichage_grille
-	la $a3, affichage_case
-	li $t0, 0		# Indice pour parcourir les lignes
-	li $t1, 36		# Indice final
-	li $t2, 6		# nb modulo
-	li $t3, 5		# modulo du dernier element d'une ligne
-	
 
-print_plateau_FOR:
-	li $t2, 6
-	div $t0, $t2
-	mfhi $t4
-	bne $t4, $zero, print_plateau_NEXT
-				# si au debut d'une ligne on print la ligne et un \n
-	move $a0, $a2
-	li $v0, 4
-	syscall
-	jal print_new_line
-	jal print_pipe
 
-print_plateau_NEXT:
-	li $v0, 4
-	sll $t5, $t0, 1
-	add $t5, $t5, $a1
-	lh $t5, 0($t5)		
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6	
-	sll $t6, $t6, 2 	# *4
-	add $a0, $t6, $a3
-	syscall			# premier pion de la case
 
-	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
-	sll $t6, $t6, 2 	# *4
-	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# second pion de la case
 
-	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
-	sll $t6, $t6, 2 	# *4
-	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# 3eme pion de la case
 
-	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
-	sll $t6, $t6, 2 	# *4
-	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# 4eme pion de la case
 
-	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
-	sll $t6, $t6, 2 	# *4
-	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# dernier pion de la case
 
-	lw $t6, 12($sp)		# recupere la coord x du depart
-	sub $t6, $t6, 1
-	lw $t5, 8($sp)		# recupere la coord y du depart
-	sub $t5, $t5, 1
-	sll $t5, $t5, 1		# *2
-	add $t6, $t6, $t5	# $t6 + 6*$t5 = $t6 + 2*$t5 + 2*2*$t5
-	sll $t5, $t5, 1		# *2
-	add $t6, $t6, $t5	# $t6 = case de depart
 
-	beq $t6, $t0, print_plateau_SWITCH_1
 
-	lw $t6, 4($sp)		# recupere la coord x de l'arrive
-	sub $t6, $t6, 1
-	lw $t5, 0($sp)		# recupere la coord y de l'arrive
-	sub $t5, $t5, 1
-	sll $t5, $t5, 1		# *2
-	add $t6, $t6, $t5	# $t6 + 6*$t5 = $t6 + 2*$t5 + 2*2*$t5
-	sll $t5, $t5, 1		# *2
-	add $t6, $t6, $t5	# $t6 = case de depart
 
-	beq $t6, $t0, print_plateau_SWITCH_2
 
-	j print_plateau_SWITCH_default
 
-print_plateau_SWITCH_1:
-	addi $a0, $a3, 12	# print "-->"
-	j print_plateau_SWITCH_END
 
-print_plateau_SWITCH_2:
-	addi $a0, $a3, 16	# print "<--"
-	j print_plateau_SWITCH_END
 
-print_plateau_SWITCH_default:
-	addi $a0, $a3, 0	# print "   "
-	j print_plateau_SWITCH_END
 
-print_plateau_SWITCH_END:
-	syscall
 
-	addi $t0, $t0, 1
 
-	jal print_pipe
-	bne $t4, $t3, print_plateau_FOR
-	jal print_new_line
-	blt $t0, $t1, print_plateau_FOR
 
-print_plateau_END_FOR:
-	move $a0, $a2
-	li $v0, 4
-	syscall
-	jal print_new_line
-
-	#lw $a0, 12($sp)	# take $a0 from stack
-	#lw $a1, 8($sp)		# take $a1 from stack
-	#lw $a2, 4($sp)		# take $a2 from stack
-	#lw $a3, 0($sp)		# take $a3 from stack
-
-	lw $ra, 16($sp)		# take $ra from stack
-	addi $sp, $sp, 20	# move stack pointer
-	jr $ra
 
 
 
