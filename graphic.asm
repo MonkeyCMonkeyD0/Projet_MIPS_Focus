@@ -10,11 +10,9 @@
 affichage_case: .asciiz  "   ", "[+]", "[*]", "-->", "<--"	# 4 char ascii par string : 4 octets pour décallage
 affichage_grille: .asciiz "+------------------+------------------+------------------+------------------+------------------+------------------+"
 
-affichage_stock: .asciiz " - le ", " possede ", " pieces en reserve." # 7 char, 10 char
-
 affichage_stock_1: .asciiz " - le "
-affichage_stock_2: .asciiz " possede "
-affichage_stock_3: .asciiz " pieces en reserve."
+affichage_stock_2: .asciiz " possède "
+affichage_stock_3: .asciiz " pièces en resérve."
 
 phrase_victoire_1: .asciiz "Felicitation au "
 phrase_victoire_2: .asciiz " qui a gagné !"
@@ -76,6 +74,7 @@ print_game:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3
 
 #--------------------#
 
+	# TODO
 	.globl print_winner
 print_winner: 				# $a0 = joueur gagnant
 
@@ -149,45 +148,35 @@ print_plateau:				# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin,
 	li $v0, 4
 	sll $t5, $t0, 1
 	add $t5, $t5, $a1
-	lh $t5, 0($t5)		
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6	
+	lh $t5, 0($t5)
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3
-	syscall			# premier pion de la case
+	syscall				# premier pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# second pion de la case
+	syscall				# second pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# 3eme pion de la case
+	syscall				# 3eme pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# 4eme pion de la case
+	syscall				# 4eme pion de la case
 
 	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
-	li $t2, 4
-	div $t5, $t2
-	mfhi $t6		# mod 4
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
 	sll $t6, $t6, 2 	# *4
 	add $a0, $t6, $a3	# print affichage_case[$t6]
-	syscall			# dernier pion de la case
+	syscall				# dernier pion de la case
 
 	lw $t6, 12($sp)		# recupere la coord x du depart
 	sub $t6, $t6, 1

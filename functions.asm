@@ -61,27 +61,26 @@ init_plateau: 				# NULL
 
 	la $t0, plateau
 	li $t1, 0 	# indice deplacement dans plateau
-	li $t4, 4
-	li $t5, 36 	# nb cases plateau
+	li $t4, 36 	# nb cases plateau
 
 	init_plateau_FOR:
 	sll $t2, $t1, 1 	# *2 pour half
 	add $t2, $t2, $t0 	# adresse de la nouvelle case
 
-	div $t1, $t4 	# indice mod 4
-	mfhi $t3
+	andi $t3, $t1, 3	# indice mod 4
 	srl $t3, $t3, 1		# /2
 	addi $t3, $t3, 1	# +1
 	sh $t3, 0($t2)
 
 	addi $t1, $t1, 1 	# +1 indice
-	blt $t1, $t5, init_plateau_FOR		# si num case < 36 => reboucle
+	blt $t1, $t4, init_plateau_FOR		# si num case < 36 => reboucle
 	init_plateau_END_FOR:
 	jr $ra
 
 
 #--------------------#
 
+	# TODO
 	.globl move_pieces
 move_pieces:				# $a0 = coord x-y depart, $a1 = coord x-y arrivé, $a2 = nb pieces
 							# $a0 = coord x depart, $ a1 = coord y depart, $a2 = coord x arrivé, $a3 = coord y arrivé, nb pieces
@@ -93,6 +92,7 @@ move_pieces:				# $a0 = coord x-y depart, $a1 = coord x-y arrivé, $a2 = nb piec
 
 #--------------------#
 
+	# TODO
 	.globl test_victory
 test_victory: 				# NULL
 
