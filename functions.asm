@@ -15,6 +15,7 @@ reserve: .byte 0, 0
 	.globl noms_joueurs
 noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)" 	# 13 char
 
+	.align 2
 
 # ---------------------------------------------------------------------------
 # FUNCTIONS SEGMENT
@@ -36,9 +37,17 @@ noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)" 	# 13 char
 # (remaining arguments are passed on the stack). Registers $v0 and $v1
 # (2,3) are used to return values from functions.
 #
+# Core of every functions :
+#
+# 		sub $sp, $sp, 4		# move stack pointer
+#		sw $ra, 0($sp)		# save $ra in stack
+#
+#		lw $ra, 0($sp)		# get $ra from stack
+#		add $sp, $sp, 4		# move stack pointer
+#		jr $ra 				# go back to caller
+#
 # ---------------------------------------------------------------------------
 
-	.align 2
 	.text
 
 # ---------------------------------------------------------------------------

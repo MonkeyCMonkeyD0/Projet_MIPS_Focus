@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # DATA SEGMENT
 #
-# Data (Strings) used by functions is declared in this data segment.
+# Data (Strings) used by functions in this file is declared in this data segment.
 # ---------------------------------------------------------------------------
 
 	.data
@@ -12,9 +12,14 @@ affichage_grille: .asciiz "+------------------+------------------+--------------
 
 affichage_stock: .asciiz " - le ", " possede ", " pieces en reserve." # 7 char, 10 char
 
+affichage_stock_1: .asciiz " - le "
+affichage_stock_2: .asciiz " possede "
+affichage_stock_3: .asciiz " pieces en reserve."
+
 phrase_victoire_1: .asciiz "Felicitation au "
 phrase_victoire_2: .asciiz " qui a gagné !"
 
+	.align 2
 
 # ---------------------------------------------------------------------------
 # FUNCTIONS SEGMENT
@@ -36,9 +41,17 @@ phrase_victoire_2: .asciiz " qui a gagné !"
 # (remaining arguments are passed on the stack). Registers $v0 and $v1
 # (2,3) are used to return values from functions.
 #
+# Core of every functions :
+#
+# 		sub $sp, $sp, 4		# move stack pointer
+#		sw $ra, 0($sp)		# save $ra in stack
+#
+#		lw $ra, 0($sp)		# get $ra from stack
+#		add $sp, $sp, 4		# move stack pointer
+#		jr $ra 				# go back to caller
+#
 # ---------------------------------------------------------------------------
 
-	.align 2
 	.text
 
 # ---------------------------------------------------------------------------
@@ -241,55 +254,44 @@ print_stock:		# NULL
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
-
-	la $t0, reserve
-	la $t1, affichage_stock
+	
+	li $t0, 0
+	la $t1, reserve
 	la $t2, noms_joueurs
+	li $t3, 13 				# 13 char pour changer de player name
 
-	addi $a0, $t1, 0
+	print_stock_FOR:
+	la $a0, affichage_stock_1
 	li $v0, 4
 	syscall
 
-	addi $a0, $t2, 0
+	mult $t0, $t3
+	mflo $a0
+	add $a0, $t2, $a0
 	syscall
 
-	addi $a0, $t1, 7
+	la $a0, affichage_stock_2
 	syscall
 
-	addi $a0, $t0, 0
+	la $a0, reserve
+	add $a0, $a0, $t0
 	lb $a0, 0($a0)
 	li $v0, 1
 	syscall
 
-	addi $a0, $t1, 17
+	la $a0, affichage_stock_3
 	li $v0, 4
 	syscall
 
 	jal print_new_line
 
-	addi $a0, $t1, 0
-	li $v0, 4
-	syscall
+	addi $t0, $t0, 1
+	slti $t4, $t0, 2
+	bnez $t4, print_stock_FOR
 
-	addi $a0, $t2, 13
-	syscall
-
-	addi $a0, $t1, 7
-	syscall
-
-	addi $a0, $t0, 1
-	lb $a0, 0($a0)
-	li $v0, 1
-	syscall
-
-	addi $a0, $t1, 17
-	li $v0, 4
-	syscall
-
-	jal print_new_line
-
-	lw $ra, 0($sp)			# save $ra in stack
-	addi $sp, $sp, 4		# move stack pointer
+	print_stock_END_FOR:
+	lw $ra, 0($sp)		# get $ra from stack
+	addi $sp, $sp, 4	# move stack pointer
 	jr $ra
 
 

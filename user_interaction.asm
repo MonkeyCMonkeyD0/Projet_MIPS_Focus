@@ -1,16 +1,19 @@
 # ---------------------------------------------------------------------------
 # DATA SEGMENT
 #
-# Data (Strings) used by functions is declared in this data segment.
+# Data (Strings) used by functions in this file is declared in this data segment.
 # ---------------------------------------------------------------------------
 
 	.data
 	.align 0
 
+phrase_nouveau_tour: .asciiz "Au tour du "
+
 phrase_choix_case_1: .asciiz "Indiquer la coordonnée "
-phrase_choix_case_2: .asciiz " de la case de depart pour le "
-phrase_choix_case_3: .asciiz " : "
+phrase_choix_case_2: .asciiz " de la case de depart (entre 1 et 6 compris) : "
 # coord_x_y: .asciiz "x", "y"
+
+phrase_choix_case_erreur: .asciiz "La case voulu ne vous appartient pas, veuillez en selectionner une autre."
 
 phrase_choix_direction_1: .asciiz "Indiquer la direction souhaité ("
 phrase_choix_direction_2: .asciiz ") : "
@@ -18,6 +21,7 @@ directions: .asciiz "^ (8)", "> (4)", "< (6)", "v (2)"
 
 phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? "
 
+	.align 2
 
 # ---------------------------------------------------------------------------
 # FUNCTIONS SEGMENT
@@ -38,10 +42,18 @@ phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? 
 # Registers $a0–$a3 (4–7) are used to pass the first four arguments to routines
 # (remaining arguments are passed on the stack). Registers $v0 and $v1
 # (2,3) are used to return values from functions.
+# 
+# Core of every functions :
+#
+# 		sub $sp, $sp, 4		# move stack pointer
+#		sw $ra, 0($sp)		# save $ra in stack
+#
+#		lw $ra, 0($sp)		# get $ra from stack
+#		add $sp, $sp, 4		# move stack pointer
+#		jr $ra 				# go back to caller
 #
 # ---------------------------------------------------------------------------
 
-	.align 2
 	.text
 
 # ---------------------------------------------------------------------------
@@ -54,6 +66,61 @@ ask_player_cell:			# $a0 = num du joueur
 	# $v0 = Renvoie la coordonnée x de la case valide selectionnée
 	# $v1 = Renvoie la coordonnée y de la case valide selectionnée
 
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+	
+	jal print_new_turn
+	sub $t0, $a0, 1
+	
+	ask_player_cell_WHILE:
+	jal print_new_line
+	la $a0, phrase_choix_case_1
+	li $v0, 4
+	syscall
+	li $a0, 0x78		# $a0 = "x"
+	li $v0, 11
+	syscall				# print x
+	la $a0, phrase_choix_case_2
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall				# get x coordinate
+	ori $a1, $v0, 0		# save x coord in $a1
+
+	la $a0, phrase_choix_case_1
+	li $v0, 4
+	syscall
+	li $a0, 0x79		# $a0 = "y"
+	li $v0, 11
+	syscall				# print y
+	la $a0, phrase_choix_case_2
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall				# get y coordinate
+	ori $a2, $v0, 0		# save y coord in $a2
+
+	addi $a0, $t0, 1
+	jal can_player_move_cell
+
+	beqz $v0, ask_player_cell_IF 	# if good cell then skip to ask_player_cell_END_IF
+
+	j ask_player_cell_END_IF
+
+	ask_player_cell_IF:
+	jal print_new_line
+	la $a0, phrase_choix_case_erreur	# raise error
+	li $v0, 4
+	syscall
+
+	j ask_player_cell_WHILE				# try again
+
+	ask_player_cell_END_IF:
+	ori $v0, $a1, 0
+	ori $v1, $a2, 0
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
 	jr $ra
 
 
@@ -87,7 +154,6 @@ ask_player_direction:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb piece
 # 		Private
 # ---------------------------------------------------------------------------
 
-	.globl can_player_move_cell
 can_player_move_cell:		# $a0 = num du joueur, $a1 = coord x de la case, $a2 = coord y de la case
 
 	# $v0 = Renvoie 0 le joueur ne peut pas de placer les pieces de cette case ou 1 si il le peut
@@ -112,24 +178,57 @@ can_player_move_cell:		# $a0 = num du joueur, $a1 = coord x de la case, $a2 = co
 	div $t0, $t3
 	mfhi $t1
 
-	beqz $t1,can_player_move_cell_END_WHILE
+	beqz $t1, can_player_move_cell_END_WHILE
 
 	addi $t2, $t1, 0
 	srl $t0, $t0, 2
 	j can_player_move_cell_WHILE
 
 	can_player_move_cell_END_WHILE:
-	li $v0, 1			# if non eq 0 else 1
+	li $v0, 1			# if equal : 1 else 0
 	beq $a0, $t2, can_player_move_cell_END_IF
 	li $v0, 0
 
 	can_player_move_cell_END_IF:	
 	lw $ra, 0($sp)		# get $ra from stack
-	add $sp, $sp, 4		# move stack pointer
+	addi $sp, $sp, 4	# move stack pointer
 	jr $ra
 
 
 #--------------------#
 
+print_new_turn: 			# $a0 = num du joueur 
 
+	# Affiche le debut d'un nouveau tout pour le joueur en parametre
 
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+
+	sub $t0, $a0, 1		# save player num in $t0
+	li $t1, 13			# $t1 = nb char to switch noms_joueurs
+
+	jal print_new_line
+	la $a0, phrase_nouveau_tour
+	li $v0, 4
+	syscall
+
+	mult $t0, $t1		# $t0 * 13
+	mflo $t0
+	la $t1, noms_joueurs
+	add $a0, $t0, $t1	# $a0 = adresse player name cell
+	syscall
+
+	li $a0, 0x20		# $a0 = " "
+	li $v0, 11
+	syscall				# print " "
+
+	li $a0, 0x3A		# $a0 = ":"
+	li $v0, 11
+	syscall				# print ":"
+
+	jal print_new_line
+
+	addi $a0, $t0, 1
+	lw $ra, 0($sp)		# get $ra from stack
+	addi $sp, $sp, 4	# move stack pointer
+	jr $ra
