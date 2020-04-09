@@ -18,7 +18,6 @@ directions: .asciiz "^ (8)", "> (4)", "< (6)", "v (2)"
 
 phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? "
 
-	.align 2
 
 # ---------------------------------------------------------------------------
 # FUNCTIONS SEGMENT
@@ -42,12 +41,12 @@ phrase_nb_piece_deplacement: .asciiz "Combien de pieces voulez vous déplacer ? 
 #
 # ---------------------------------------------------------------------------
 
+	.align 2
 	.text
 
 # ---------------------------------------------------------------------------
 # 		Public	 	(.globl)
 # ---------------------------------------------------------------------------
-
 
 	.globl ask_player_cell
 ask_player_cell:			# $a0 = num du joueur 
@@ -60,7 +59,6 @@ ask_player_cell:			# $a0 = num du joueur
 
 #--------------------#
 
-
 	.globl ask_player_nb_pieces
 ask_player_nb_pieces:			# $a0 = coord case x, $a1 = coord case y
 
@@ -72,7 +70,6 @@ ask_player_nb_pieces:			# $a0 = coord case x, $a1 = coord case y
 
 #--------------------#
 
-
 	.globl ask_player_direction
 ask_player_direction:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb pieces
 
@@ -83,14 +80,54 @@ ask_player_direction:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb piece
 
 #--------------------#
 
-	
+
 
 
 # ---------------------------------------------------------------------------
 # 		Private
 # ---------------------------------------------------------------------------
 
-	
+	.globl can_player_move_cell
+can_player_move_cell:		# $a0 = num du joueur, $a1 = coord x de la case, $a2 = coord y de la case
+
+	# $v0 = Renvoie 0 le joueur ne peut pas de placer les pieces de cette case ou 1 si il le peut
+
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+	li $t3, 3
+
+	sub $t0, $a1, 1		# recupere la coord x de la case
+	sub $t1, $a2, 1		# recupere la coord y de la case
+	sll $t1, $t1, 1		# *2
+	add $t0, $t0, $t1	# $t0 + 6*$t1 = $t0 + 2*$t1 + 2*2*$t1
+	sll $t1, $t1, 1		# *2
+	add $t0, $t0, $t1	# $t0 = position de la case
+	sll $t0, $t0, 1 	# *2 car on manipule des half
+
+	la $t1, plateau
+	add $t1, $t1, $t0 	# recupere l'adresse de la case
+	lh $t0, 0($t1)		# recupere le contenu de la case
+
+	can_player_move_cell_WHILE:
+	div $t0, $t3
+	mfhi $t1
+
+	beqz $t1,can_player_move_cell_END_WHILE
+
+	addi $t2, $t1, 0
+	srl $t0, $t0, 2
+	j can_player_move_cell_WHILE
+
+	can_player_move_cell_END_WHILE:
+	li $v0, 1			# if non eq 0 else 1
+	beq $a0, $t2, can_player_move_cell_END_IF
+	li $v0, 0
+
+	can_player_move_cell_END_IF:	
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra
+
 
 #--------------------#
 

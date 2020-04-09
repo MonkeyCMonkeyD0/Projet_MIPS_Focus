@@ -15,7 +15,6 @@ affichage_stock: .asciiz " - le ", " possede ", " pieces en reserve." # 7 char, 
 phrase_victoire_1: .asciiz "Felicitation au "
 phrase_victoire_2: .asciiz " qui a gagné !"
 
-	.align 2
 
 # ---------------------------------------------------------------------------
 # FUNCTIONS SEGMENT
@@ -39,6 +38,7 @@ phrase_victoire_2: .asciiz " qui a gagné !"
 #
 # ---------------------------------------------------------------------------
 
+	.align 2
 	.text
 
 # ---------------------------------------------------------------------------
@@ -46,7 +46,7 @@ phrase_victoire_2: .asciiz " qui a gagné !"
 # ---------------------------------------------------------------------------
 
 	.globl print_game
-print_game_state:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
+print_game:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
 
 	# Affiche l'etat complet du jeu
 
@@ -76,7 +76,7 @@ print_winner: 				# $a0 = joueur gagnant
 	.globl print_new_line
 print_new_line:				# NULL
 
-	# Affiche un saut de ligne dans la console
+	# Affiche un saut de ligne (\n) dans la console
 
 	li $a0, '\n'
 	li $v0, 11
@@ -120,7 +120,7 @@ print_plateau:				# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin,
 	li $t2, 6		# nb modulo
 	li $t3, 5		# modulo du dernier element d'une ligne
 
-print_plateau_FOR:
+	print_plateau_FOR:
 	li $t2, 6
 	div $t0, $t2
 	mfhi $t4
@@ -132,7 +132,7 @@ print_plateau_FOR:
 	jal print_new_line
 	jal print_pipe
 
-print_plateau_NEXT:
+	print_plateau_NEXT:
 	li $v0, 4
 	sll $t5, $t0, 1
 	add $t5, $t5, $a1
@@ -194,25 +194,25 @@ print_plateau_NEXT:
 	sll $t5, $t5, 1		# *2
 	add $t6, $t6, $t5	# $t6 + 6*$t5 = $t6 + 2*$t5 + 2*2*$t5
 	sll $t5, $t5, 1		# *2
-	add $t6, $t6, $t5	# $t6 = case de depart
+	add $t6, $t6, $t5	# $t6 = case d'arrive
 
 	beq $t6, $t0, print_plateau_SWITCH_2
 
 	j print_plateau_SWITCH_default
 
-print_plateau_SWITCH_1:
+	print_plateau_SWITCH_1:
 	addi $a0, $a3, 12	# print "-->"
 	j print_plateau_SWITCH_END
 
-print_plateau_SWITCH_2:
+	print_plateau_SWITCH_2:
 	addi $a0, $a3, 16	# print "<--"
 	j print_plateau_SWITCH_END
 
-print_plateau_SWITCH_default:
+	print_plateau_SWITCH_default:
 	addi $a0, $a3, 0	# print "   "
 	j print_plateau_SWITCH_END
 
-print_plateau_SWITCH_END:
+	print_plateau_SWITCH_END:
 	syscall
 
 	addi $t0, $t0, 1
@@ -222,7 +222,7 @@ print_plateau_SWITCH_END:
 	jal print_new_line
 	blt $t0, $t1, print_plateau_FOR
 
-print_plateau_END_FOR:
+	print_plateau_END_FOR:
 	move $a0, $a2
 	li $v0, 4
 	syscall

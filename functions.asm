@@ -1,16 +1,20 @@
 # ---------------------------------------------------------------------------
-# DATA SEGMENT
+# GLOBAL DATA SEGMENT
 #
-# Data (Strings) used by functions is declared in this data segment.
+# Globally used data by functions is declared in this data segment.
 # ---------------------------------------------------------------------------
 
 	.data
 	.align 0
 
+	.globl plateau
+plateau: .space 72		# stockage : un half pour une case soit 16 bits pour 5 pions => pion sur 2 bit [01] 1 (+) / [10] 2 (*) / [00] vide
+	.globl reserve
+reserve: .byte 0, 0
+
 	.globl noms_joueurs
 noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)" 	# 13 char
 
-	.align 2
 
 # ---------------------------------------------------------------------------
 # FUNCTIONS SEGMENT
@@ -34,6 +38,7 @@ noms_joueurs: .asciiz "joueur 1 (+)", "joueur 2 (*)" 	# 13 char
 #
 # ---------------------------------------------------------------------------
 
+	.align 2
 	.text
 
 # ---------------------------------------------------------------------------
@@ -49,17 +54,20 @@ init_plateau: 				# NULL
 	li $t1, 0 	# indice deplacement dans plateau
 	li $t4, 4
 	li $t5, 36 	# nb cases plateau
-init_plateau_FOR:
+
+	init_plateau_FOR:
 	sll $t2, $t1, 1 	# *2 pour half
 	add $t2, $t2, $t0 	# adresse de la nouvelle case
+
 	div $t1, $t4 	# indice mod 4
 	mfhi $t3
 	srl $t3, $t3, 1		# /2
 	addi $t3, $t3, 1	# +1
 	sh $t3, 0($t2)
+
 	addi $t1, $t1, 1 	# +1 indice
 	blt $t1, $t5, init_plateau_FOR		# si num case < 36 => reboucle
-init_plateau_END_FOR:
+	init_plateau_END_FOR:
 	jr $ra
 
 
