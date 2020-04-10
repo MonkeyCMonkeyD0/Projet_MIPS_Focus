@@ -33,6 +33,16 @@ test:
 	li $v0, 1
 	syscall
 
+	li $a0, 1			# test ask_player_action
+	jal ask_player_action
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
+
+
+
+
+
 	j main
 
 

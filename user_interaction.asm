@@ -9,6 +9,9 @@
 
 phrase_nouveau_tour: .asciiz "Au tour du "
 
+phrase_choix_action: .asciiz "Que voulez-vous faire (0: bouger une pile / 1: déposer des pièces) ? "
+phrase_choix_action_error: .asciiz "La valeur indiquée n'est pas valide, veuillez recommencer."
+
 phrase_choix_case_1: .asciiz "Indiquer la coordonnée "
 phrase_choix_case_2: .asciiz " de la case de depart (entre 1 et 6 compris) : "
 
@@ -60,7 +63,6 @@ phrase_nb_piece_deplacement_error: .asciiz "La valeur indiquée n'est pas valide
 # 		Public	 	(.globl)
 # ---------------------------------------------------------------------------
 
-	# TODO
 	.globl ask_player_action
 ask_player_action: 				# $a0 = num du joueur
 
@@ -70,8 +72,30 @@ ask_player_action: 				# $a0 = num du joueur
 	sw $ra, 0($sp)		# save $ra in stack
 
 	jal print_new_turn
+
+	jal get_nb_piece_to_drop
+	beqz $v0, ask_player_action_END_IF
 	
-	# proposer le choix seulement si stock > 0
+	ori $t0, $a0, 0
+
+	ask_player_action_WHILE:
+	la $a0, phrase_choix_action
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall
+
+	li $t1, 1
+	ble $v0, $t1, ask_player_action_END_IF
+
+	jal print_new_line
+	la $a0, phrase_choix_action_error
+	li $v0, 4
+	syscall
+	jal print_new_line
+	j ask_player_action_WHILE
+
+	ask_player_action_END_IF:
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
@@ -338,8 +362,19 @@ get_nb_piece_to_move:		# $a0 = coord case x, $a1 = coord case y
 
 #--------------------#
 
-	# TODO
 get_nb_piece_to_drop:		# $a0 = num du joueur
 
 	# $v0 = nb dans la reserve du joueur
+
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+
+	la $t0, reserve
+	add $t0, $t0, $a0
+	subi $t0, $t0, 1
+	lb $v0, 0($t0)
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
 
