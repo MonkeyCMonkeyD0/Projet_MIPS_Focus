@@ -9,20 +9,19 @@
 
 phrase_nouveau_tour: .asciiz "Au tour du "
 
+phrase_error: .asciiz "La valeur indiquée n'est pas valide, veuillez recommencer."
+
 phrase_choix_action: .asciiz "Que voulez-vous faire (0: bouger une pile / 1: déposer des pièces) ? "
-phrase_choix_action_error: .asciiz "La valeur indiquée n'est pas valide, veuillez recommencer."
 
 phrase_choix_case_1: .asciiz "Indiquer la coordonnée "
 phrase_choix_case_2: .asciiz " de la case de depart (entre 1 et 6 compris) : "
 
 phrase_choix_case_erreur: .asciiz "La case voulu ne vous appartient pas, veuillez en séléctionner une autre."
 
-phrase_choix_direction_1: .asciiz "Indiquer la direction souhaité ("
-phrase_choix_direction_2: .asciiz ") : "
-directions: .asciiz "^ (8)", "> (4)", "< (6)", "v (2)"
+phrase_choix_direction: .asciiz ") : ", "Indiquer la direction souhaité (" 	# 5 ascii pour la 1er string.
+directions: .asciiz "^: 8", "<: 6", ">: 4", "v: 2" 	# 5 ascii par string.
 
-phrase_nb_piece_deplacement: .asciiz ") ? ", "Combien de pièces voulez vous déplacer (entre 1 et "
-phrase_nb_piece_deplacement_error: .asciiz "La valeur indiquée n'est pas valide, veuillez recommencer."
+phrase_nb_piece_deplacement: .asciiz ") ? ", "Combien de pièces voulez vous déplacer (entre 1 et " # 5 ascii pour la 1er string.
 
 	.align 2
 
@@ -89,7 +88,7 @@ ask_player_action: 				# $a0 = num du joueur
 	ble $v0, $t1, ask_player_action_END_IF
 
 	jal print_new_line
-	la $a0, phrase_choix_action_error
+	la $a0, phrase_error
 	li $v0, 4
 	syscall
 	jal print_new_line
@@ -198,10 +197,13 @@ ask_player_nb_pieces_move:			# $a0 = coord case x, $a1 = coord case y
 	li $v0, 5
 	syscall
 
+	blez $v0, ask_player_nb_pieces_move_IF
+
 	ble $v0, $a2, ask_player_nb_pieces_move_END_WHILE	# if valeur fourni ok on saute à la fin
 
+	ask_player_nb_pieces_move_IF:
 	jal print_new_line									# sinon on affiche une erreur et on recommence
-	la $a0, phrase_nb_piece_deplacement_error
+	la $a0, phrase_error
 	li $v0, 4
 	syscall
 	jal print_new_line
@@ -225,7 +227,87 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 
 	# $v0 = Renvoie la direction voulu pour deplacer la pile de pieces du joueur actuel
 
-	jr $ra
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+
+	add $s0, $zero, $a0
+	add $s1, $zero, $a1
+	add $s2, $zero, $a2
+	la $s3, plateau
+
+	ask_player_direction_move_WHILE:
+	jal print_new_line
+	la $a0, phrase_choix_direction
+	addi $a0, $a0, 5
+	li $v0, 4
+	syscall					# Afficher le debut de la phrase de choix
+
+	li $t0, 1
+	ask_player_direction_move_FOR:
+
+	srl $t2, $t0, 1
+	beqz $t2, ask_player_direction_move_IF_1
+	add $t1, $zero, $s0
+	j ask_player_direction_move_END_IF_1
+	ask_player_direction_move_IF_1:
+	add $t1, $zero, $s1
+	ask_player_direction_move_END_IF_1:
+
+	xor $t2, $t0, $t2
+	and $t2, $t2, 1
+	beqz $t2, ask_player_direction_move_IF_2
+	addi $t1, $t1, -1
+	j ask_player_direction_move_END_IF_2
+	ask_player_direction_move_IF_2:
+	li $t3, 6
+	sub $t1, $t3, $t1
+	ask_player_direction_move_END_IF_2:
+
+	sub $t1, $t1, $s2
+	bltz $t1, ask_player_direction_move_IF_3
+
+	jal print_space
+	la $a0, directions
+	li $t3, 5
+	addi $t1, $t0, -1
+	mul $t3, $t1, $t3
+	add $a0, $a0, $t3
+	li $v0, 4
+	syscall
+	jal print_space
+
+	ask_player_direction_move_IF_3:
+	addi $t0, $t0, 1
+	li $t3, 4
+	ble $t0, $t3, ask_player_direction_move_FOR
+
+	ask_player_direction_move_END_FOR:
+	la $a0, phrase_choix_direction
+	li $v0, 4
+	syscall
+
+	li $v0, 5
+	syscall
+
+
+	#TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	li $v0, 1#---------------------------------------–––– add function test move possible
+
+
+	bne $v0, $zero, ask_player_direction_move_END_WHILE
+
+	jal print_new_line
+	la $a0, phrase_error
+	li $v0, 4
+	syscall
+	jal print_new_line
+	j ask_player_direction_move_WHILE
+
+	ask_player_direction_move_END_WHILE:
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
 
 
 #--------------------#
@@ -237,7 +319,12 @@ ask_player_cell_drop:			# $a0 = player num
 	# $v0 = coord x case depot
 	# $v1 = coord y case depot
 
-	jr $ra
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
 
 
 # ---------------------------------------------------------------------------
@@ -378,3 +465,9 @@ get_nb_piece_to_drop:		# $a0 = num du joueur
 	add $sp, $sp, 4		# move stack pointer
 	jr $ra 				# go back to caller
 
+
+#--------------------#
+
+can_player_choose_move:		# $a0 = coord x, $a1 = coord y, $a2 = nb pieces, $a3 = direction
+
+	# $v0 = 1 si deplacement possible, 0 sinon

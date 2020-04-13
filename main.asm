@@ -39,6 +39,14 @@ test:
 	li $v0, 1
 	syscall
 
+	li $a0, 1			# test ask_player_direction_move
+	li $a1, 1
+	li $a2, 2
+	jal ask_player_direction_move
+	li $a0, 3
+	li $a1, 3
+	li $a2, 1
+	jal ask_player_direction_move
 
 
 
