@@ -221,7 +221,6 @@ ask_player_nb_pieces_move:			# $a0 = coord case x, $a1 = coord case y
 
 #--------------------#
 
-	# TODO
 	.globl ask_player_direction_move
 ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb pieces
 
@@ -286,16 +285,23 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 	li $v0, 4
 	syscall
 
-	li $v0, 5
+	li $v0, 5		# Choix de l'utilisateur
 	syscall
 
+	andi $t0, $v0, 1		# test pour valeurs impair
+	bnez $t0, ask_player_direction_move_IF_4
 
-	#TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	li $v0, 1#---------------------------------------–––– add function test move possible
-
+	srl $a3, $v0, 1 			# /2
+	li $t0, 5
+	sub $a3, $t0, $a3 			# $a3 = 5-x/2 : fonction qui attribut la bonne direction a l'entre de l'utilisateur
+	add $a0, $zero, $s0
+	add $a1, $zero, $s1
+	add $a2, $zero, $s2
+	jal can_player_choose_move
 
 	bne $v0, $zero, ask_player_direction_move_END_WHILE
 
+	ask_player_direction_move_IF_4:
 	jal print_new_line
 	la $a0, phrase_error
 	li $v0, 4
@@ -471,3 +477,35 @@ get_nb_piece_to_drop:		# $a0 = num du joueur
 can_player_choose_move:		# $a0 = coord x, $a1 = coord y, $a2 = nb pieces, $a3 = direction
 
 	# $v0 = 1 si deplacement possible, 0 sinon
+
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+
+	srl $t1, $a3, 1
+	beqz $t1, can_player_choose_move_IF_1
+	add $t0, $zero, $a0
+	j can_player_choose_move_END_IF_1
+	can_player_choose_move_IF_1:
+	add $t0, $zero, $a1
+	can_player_choose_move_END_IF_1:
+
+	xor $t1, $a3, $t1
+	and $t1, $t1, 1
+	beqz $t1, can_player_choose_move_IF_2
+	addi $t0, $t0, -1
+	j can_player_choose_move_END_IF_2
+	can_player_choose_move_IF_2:
+	li $t3, 6
+	sub $t0, $t3, $t0
+	can_player_choose_move_END_IF_2:
+
+	sub $t0, $t0, $a2
+	li $v0, 0
+	bltz $t0, can_player_choose_move_IF_3
+
+	li $v0, 1
+	can_player_choose_move_IF_3:
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
