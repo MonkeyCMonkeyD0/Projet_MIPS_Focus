@@ -222,7 +222,7 @@ ask_player_cell_drop:			# $a0 = player num
 
 can_player_move_cell:		# $a0 = num du joueur, $a1 = coord x de la case, $a2 = coord y de la case
 
-	# $v0 = Renvoie 0 le joueur ne peut pas de placer les pieces de cette case ou 1 si il le peut
+	# $v0 = Renvoie 0 le joueur ne peut pas deplacer les pieces de cette case ou 1 si il le peut
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
