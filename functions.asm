@@ -82,7 +82,7 @@ init_plateau: 				# NULL
 
 	# TODO
 	.globl move_pieces
-move_pieces:				# $a0 = coord x-y depart, $a1 = coord x-y arrivé, $a2 = nb pieces
+move_pieces:				# $a0 = num case depart, $a1 = num case arrivé, $a2 = nb pieces
 							# $a0 = coord x depart, $ a1 = coord y depart, $a2 = coord x arrivé, $a3 = coord y arrivé, nb pieces
 
 	# Met a jour la memoire pour representer le deplacement des pieces
