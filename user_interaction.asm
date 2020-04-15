@@ -14,9 +14,9 @@ phrase_error: .asciiz "La valeur indiquée n'est pas valide, veuillez recommence
 phrase_choix_action: .asciiz "Que voulez-vous faire (0: bouger une pile / 1: déposer des pièces) ? "
 
 phrase_choix_case_1: .asciiz "Indiquer la coordonnée "
-phrase_choix_case_2: .asciiz " de la case de depart (entre 1 et 6 compris) : "
+phrase_choix_case_2: .asciiz " de la case voulu (entre 1 et 6 compris) : "
 
-phrase_choix_case_erreur: .asciiz "La case voulu ne vous appartient pas, veuillez en séléctionner une autre."
+phrase_choix_case_erreur: .asciiz "La case voulu ne peut être sélectionnée, veuillez en sélectionner une autre."
 
 phrase_choix_direction: .asciiz ") : ", "Indiquer la direction souhaité (" 	# 5 ascii pour la 1er string.
 directions: .asciiz "^: 8", "<: 6", ">: 4", "v: 2" 	# 5 ascii par string.
@@ -128,6 +128,10 @@ ask_player_cell_move:			# $a0 = num du joueur
 	syscall				# get x coordinate
 	ori $a1, $v0, 0		# save x coord in $a1
 
+	slti $t2, $a1, 7
+	slt $t1, $zero, $a1
+	and $t2, $t2, $t1
+
 	la $a0, phrase_choix_case_1
 	li $v0, 4
 	syscall
@@ -140,6 +144,12 @@ ask_player_cell_move:			# $a0 = num du joueur
 	li $v0, 5
 	syscall				# get y coordinate
 	ori $a2, $v0, 0		# save y coord in $a2
+
+	slti $t1, $a2, 7
+	and $t2, $t2, $t1
+	slt $t1, $zero, $a2
+	and $t2, $t2, $t1
+	beqz $t2, ask_player_cell_move_IF 	# if cell does not exist skip to ask_player_cell_move_IF
 
 	addi $a0, $t0, 1
 	jal can_player_move_cell
@@ -176,7 +186,7 @@ ask_player_nb_pieces_move:			# $a0 = coord case x, $a1 = coord case y
 
 	jal get_nb_piece_to_move
 	ori $a2, $v0, 0		# nb max de pion
-	ori $s0, $a0, 0
+	ori $t0, $a0, 0
 
 	ask_player_nb_pieces_move_WHILE:
 	jal print_new_line
@@ -212,7 +222,7 @@ ask_player_nb_pieces_move:			# $a0 = coord case x, $a1 = coord case y
 
 	ask_player_nb_pieces_move_END_WHILE:
 	ori $a2, $v0, 0
-	ori $a0, $s0, 0
+	ori $a0, $t0, 0
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
@@ -229,10 +239,7 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
 
-	add $s0, $zero, $a0
-	add $s1, $zero, $a1
-	add $s2, $zero, $a2
-	la $s3, plateau
+	add $t4, $zero, $a0
 
 	ask_player_direction_move_WHILE:
 	jal print_new_line
@@ -246,10 +253,10 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 
 	srl $t2, $t0, 1
 	beqz $t2, ask_player_direction_move_IF_1
-	add $t1, $zero, $s0
+	add $t1, $zero, $t4
 	j ask_player_direction_move_END_IF_1
 	ask_player_direction_move_IF_1:
-	add $t1, $zero, $s1
+	add $t1, $zero, $a1
 	ask_player_direction_move_END_IF_1:
 
 	xor $t2, $t0, $t2
@@ -262,7 +269,7 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 	sub $t1, $t3, $t1
 	ask_player_direction_move_END_IF_2:
 
-	sub $t1, $t1, $s2
+	sub $t1, $t1, $a2
 	bltz $t1, ask_player_direction_move_IF_3
 
 	jal print_space
@@ -294,9 +301,7 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 	srl $a3, $v0, 1 			# /2
 	li $t0, 5
 	sub $a3, $t0, $a3 			# $a3 = 5-x/2 : fonction qui attribut la bonne direction a l'entre de l'utilisateur
-	add $a0, $zero, $s0
-	add $a1, $zero, $s1
-	add $a2, $zero, $s2
+	add $a0, $zero, $t4
 	jal can_player_choose_move
 
 	bne $v0, $zero, ask_player_direction_move_END_WHILE
@@ -311,6 +316,8 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 
 	ask_player_direction_move_END_WHILE:
 
+	ori $v0, $a3, 0
+
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
 	jr $ra 				# go back to caller
@@ -318,15 +325,65 @@ ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb 
 
 #--------------------#
 
-	# TODO
 	.globl ask_player_cell_drop
-ask_player_cell_drop:			# $a0 = player num
+ask_player_cell_drop:			# NULL
 
 	# $v0 = coord x case depot
 	# $v1 = coord y case depot
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
+
+	ask_player_cell_drop_WHILE:
+	jal print_new_line
+	la $a0, phrase_choix_case_1
+	li $v0, 4
+	syscall
+	li $a0, 0x78		# $a0 = "x"
+	li $v0, 11
+	syscall				# print x
+	la $a0, phrase_choix_case_2
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall				# get x coordinate
+	ori $t2, $v0, 0		# save x coord in $t2
+	
+	slti $t0, $t2, 7
+	slt $t1, $zero, $t2
+	and $t0, $t0, $t1
+	
+	la $a0, phrase_choix_case_1
+	li $v0, 4
+	syscall
+	li $a0, 0x79		# $a0 = "y"
+	li $v0, 11
+	syscall				# print y
+	la $a0, phrase_choix_case_2
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall				# get y coordinate
+	ori $v1, $v0, 0		# save y coord in $v1
+
+	slti $t1, $v1, 7
+	and $t0, $t0, $t1
+	slt $t1, $zero, $v1
+	and $t0, $t0, $t1
+
+	beqz $t0, ask_player_cell_drop_IF 	# if good cell then skip to ask_player_cell_drop_END_IF
+	j ask_player_cell_drop_END_IF
+
+	ask_player_cell_drop_IF:
+	jal print_new_line
+	la $a0, phrase_choix_case_erreur	# raise error
+	li $v0, 4
+	syscall
+	jal print_new_line
+	j ask_player_cell_drop_WHILE		# try again
+
+	ask_player_cell_drop_END_IF:
+	ori $v0, $t2, 0
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
