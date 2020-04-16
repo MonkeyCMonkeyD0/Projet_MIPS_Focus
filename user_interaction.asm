@@ -65,14 +65,14 @@ phrase_nb_piece_deplacement: .asciiz ") ? ", "Combien de pièces voulez vous dé
 	.globl ask_player_action
 ask_player_action: 				# $a0 = num du joueur
 
-	# $v0 = Choix du player : 0 pour move et 1 drop
+	# $v0 = Choix du player : 0 pour move et 1 pour drop(de la reserve)
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
 
 	jal print_new_turn
 
-	jal get_nb_piece_to_drop
+	jal get_nb_piece_to_drop # Pour voir s'il a des pièces en réserve
 	beqz $v0, ask_player_action_END_IF
 	
 	ori $t0, $a0, 0
@@ -437,7 +437,7 @@ can_player_move_cell:		# $a0 = num du joueur, $a1 = coord x de la case, $a2 = co
 
 print_new_turn: 			# $a0 = num du joueur 
 
-	# Affiche le debut d'un nouveau tout pour le joueur en parametre
+	# Affiche le debut d'un nouveau tour pour le joueur en parametre
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
@@ -461,7 +461,6 @@ print_new_turn: 			# $a0 = num du joueur
 	syscall				# print " "
 
 	li $a0, 0x3A		# $a0 = ":"
-	li $v0, 11
 	syscall				# print ":"
 
 	jal print_new_line
