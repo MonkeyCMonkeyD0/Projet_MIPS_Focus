@@ -79,8 +79,31 @@ print_game:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3
 print_winner: 				# $a0 = joueur gagnant
 
 	# Affiche le joueur gagnant
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
 
+	sub $t0, $a0, 1		# save player num in $t0
+	li $t1, 13			
+
+	jal print_new_line
+	la $a0, phrase_victoire_1
+	li $v0, 4
+	syscall
+
+	mult $t0, $t1		# $t0 * 13
+	mflo $t0
+	la $t1, noms_joueurs
+	add $a0, $t0, $t1	# $a0 = adress of player name cell
+	syscall
+
+	la $a0, phrase_victoire_2
+	li $v0, 4
+	syscall
+
+	lw $ra, 0($sp)
+	add $sp, $sp, 4		# move stack pointer
 	jr $ra
+
 
 
 #--------------------#

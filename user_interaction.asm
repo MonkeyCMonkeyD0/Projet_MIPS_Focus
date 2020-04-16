@@ -73,9 +73,7 @@ ask_player_action: 				# $a0 = num du joueur
 	jal print_new_turn
 
 	jal get_nb_piece_to_drop # Pour voir s'il a des pièces en réserve
-	beqz $v0, ask_player_action_END_IF
-
-	# TODO : Retirer choix deplacement si aucune piece a deplacer
+	beqz $v0, ask_player_action_END_IF # Si pas de pièces, pas de choix
 	
 	ori $t0, $a0, 0
 

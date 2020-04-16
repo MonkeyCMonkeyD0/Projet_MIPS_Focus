@@ -70,6 +70,10 @@ test:
 	ori $a0, $v1, 0
 	syscall
 
+	li $a0, 1
+	#li $a0, 2
+	jal print_winner
+
 
 	j main
 
