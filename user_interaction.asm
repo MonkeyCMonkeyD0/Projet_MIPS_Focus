@@ -113,6 +113,7 @@ ask_player_cell_move:			# $a0 = num du joueur
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
+	
 	sub $t0, $a0, 1
 	
 	ask_player_cell_move_WHILE:
@@ -154,7 +155,7 @@ ask_player_cell_move:			# $a0 = num du joueur
 	beqz $t2, ask_player_cell_move_IF 	# if cell does not exist skip to ask_player_cell_move_IF
 
 	addi $a0, $t0, 1
-	jal can_player_move_cell
+	jal player_posses_cell
 
 	beqz $v0, ask_player_cell_move_IF 	# if good cell then skip to ask_player_cell_move_END_IF
 	j ask_player_cell_move_END_IF
@@ -395,47 +396,6 @@ ask_player_cell_drop:			# NULL
 # ---------------------------------------------------------------------------
 # 		Private
 # ---------------------------------------------------------------------------
-
-can_player_move_cell:		# $a0 = num du joueur, $a1 = coord x de la case, $a2 = coord y de la case
-
-	# $v0 = Renvoie 0 le joueur ne peut pas deplacer les pieces de cette case ou 1 si il le peut
-
-	sub $sp, $sp, 4		# move stack pointer
-	sw $ra, 0($sp)		# save $ra in stack
-
-	sub $t0, $a1, 1		# recupere la coord x de la case
-	sub $t1, $a2, 1		# recupere la coord y de la case
-	sll $t1, $t1, 1		# *2
-	add $t0, $t0, $t1	# $t0 + 6*$t1 = $t0 + 2*$t1 + 2*2*$t1
-	sll $t1, $t1, 1		# *2
-	add $t0, $t0, $t1	# $t0 = position de la case
-	sll $t0, $t0, 1 	# *2 car on manipule des half
-
-	la $t1, plateau
-	add $t1, $t1, $t0 	# recupere l'adresse de la case
-	lh $t0, 0($t1)		# recupere le contenu de la case
-
-	can_player_move_cell_WHILE:
-	andi $t1, $t0, 3	# recupere les 2 bits de poids faible
-
-	beqz $t1, can_player_move_cell_END_WHILE
-
-	addi $t2, $t1, 0
-	srl $t0, $t0, 2
-	j can_player_move_cell_WHILE
-
-	can_player_move_cell_END_WHILE:
-	li $v0, 1			# if equal : 1 else 0
-	beq $a0, $t2, can_player_move_cell_END_IF
-	li $v0, 0
-
-	can_player_move_cell_END_IF:	
-	lw $ra, 0($sp)		# get $ra from stack
-	addi $sp, $sp, 4	# move stack pointer
-	jr $ra
-
-
-#--------------------#
 
 print_new_turn: 			# $a0 = num du joueur 
 

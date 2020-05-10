@@ -51,6 +51,7 @@ test:
 	li $a0, 1			# test ask_player_direction_move
 	li $a1, 1
 	li $a2, 2
+
 	jal ask_player_direction_move
 	ori $a0, $v0, 0
 	li $v0, 1
@@ -73,6 +74,14 @@ test:
 	li $a0, 1
 	#li $a0, 2
 	jal print_winner
+
+	jal print_new_line
+
+	li $a0, 1
+	jal test_can_move 	# test test_can_move
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
 
 
 	j main

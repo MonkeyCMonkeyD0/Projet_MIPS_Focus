@@ -74,11 +74,11 @@ print_game:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3
 
 #--------------------#
 
-	# TODO
 	.globl print_winner
 print_winner: 				# $a0 = joueur gagnant
 
 	# Affiche le joueur gagnant
+
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
 
@@ -97,7 +97,6 @@ print_winner: 				# $a0 = joueur gagnant
 	syscall
 
 	la $a0, phrase_victoire_2
-	li $v0, 4
 	syscall
 
 	lw $ra, 0($sp)
