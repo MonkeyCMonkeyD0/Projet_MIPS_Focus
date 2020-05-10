@@ -72,10 +72,13 @@ ask_player_action: 				# $a0 = num du joueur
 
 	jal print_new_turn
 
-	jal get_nb_piece_to_drop # Pour voir s'il a des pièces en réserve
-	beqz $v0, ask_player_action_END_IF # Si pas de pièces, pas de choix
+	jal get_nb_piece_to_drop 		# Pour voir s'il a des pièces en réserve
+	beqz $v0, ask_player_action_IF 	# Si pas de pièces, pas de choix
 
-	#TODO : retirer choix si joueur ne peut pas move
+	jal test_can_move				# Pour voir s'il a des pièces à déplacer
+	addi $v0, $v0, 1				# switch 0 and 1
+	andi $v0, $v0, 1
+	bnez $v0, ask_player_action_IF 	# Si pas de pièces, pas de choix
 	
 	ori $t0, $a0, 0
 
@@ -87,7 +90,7 @@ ask_player_action: 				# $a0 = num du joueur
 	syscall
 
 	li $t1, 1
-	ble $v0, $t1, ask_player_action_END_IF
+	ble $v0, $t1, ask_player_action_IF
 
 	jal print_new_line
 	la $a0, phrase_error
@@ -96,7 +99,7 @@ ask_player_action: 				# $a0 = num du joueur
 	jal print_new_line
 	j ask_player_action_WHILE
 
-	ask_player_action_END_IF:
+	ask_player_action_IF:
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
@@ -113,7 +116,7 @@ ask_player_cell_move:			# $a0 = num du joueur
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
-	
+
 	sub $t0, $a0, 1
 	
 	ask_player_cell_move_WHILE:
