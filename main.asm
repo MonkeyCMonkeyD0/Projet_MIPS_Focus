@@ -72,7 +72,6 @@ test:
 	syscall
 
 	li $a0, 1
-	#li $a0, 2
 	jal print_winner
 
 	jal print_new_line
@@ -83,6 +82,49 @@ test:
 	li $v0, 1
 	syscall
 
+	jal print_new_line
+	jal test_victory 	# test test_victory
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
+
+#	jal print_new_line
+#	li $a0, 0x16		# test get_nb_pieces_in_cell avec 3 pieces
+#	li $a0, 0x59		# test get_nb_pieces_in_cell avec 4 pieces
+#	jal get_nb_pieces_in_cell
+#	ori $a0, $v0, 0
+#	li $v0, 1
+#	syscall
+
+	jal print_new_line
+	li $a0, 1
+	li $a1, 2
+	li $a2, 1
+	li $a3, 1
+	jal move_pieces		# test move_pieces
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
+	ori $a0, $v1, 0
+	syscall
+
+	jal print_new_line
+	jal print_game		# test print_game
+
+	jal print_new_line
+	li $a0, 2
+	li $a1, 3
+	li $a2, 2
+	li $a3, 1
+	jal move_pieces		# test move_pieces
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
+	ori $a0, $v1, 0
+	syscall
+
+	jal print_new_line
+	jal print_game		# test print_game
 
 	j main
 

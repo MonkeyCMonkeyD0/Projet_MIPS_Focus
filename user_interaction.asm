@@ -183,7 +183,7 @@ ask_player_cell_move:			# $a0 = num du joueur
 #--------------------#
 
 	.globl ask_player_nb_pieces_move
-ask_player_nb_pieces_move:			# $a0 = coord case x, $a1 = coord case y
+ask_player_nb_pieces_move:		# $a0 = coord case x, $a1 = coord case y
 
 	# $v0 = Renvoie le nombre de pieces que le joueur actuel veut deplacer
 
@@ -238,7 +238,7 @@ ask_player_nb_pieces_move:			# $a0 = coord case x, $a1 = coord case y
 #--------------------#
 
 	.globl ask_player_direction_move
-ask_player_direction_move:			# $a0 = coord case x, $a1 = coord case y, $a2 = nb pieces
+ask_player_direction_move:		# $a0 = coord case x, $a1 = coord case y, $a2 = nb pieces
 
 	# $v0 = Renvoie la direction voulu pour deplacer la pile de pieces du joueur actuel
 
@@ -396,11 +396,21 @@ ask_player_cell_drop:			# NULL
 	jr $ra 				# go back to caller
 
 
+#--------------------#
+	# TODO
+	.globl ask_player_nb_pieces_drop
+ask_player_nb_pieces_drop:		# $a0 = num joueur
+
+	# $v0 = nb pieces
+
+	
+
+
 # ---------------------------------------------------------------------------
 # 		Private
 # ---------------------------------------------------------------------------
 
-print_new_turn: 			# $a0 = num du joueur 
+print_new_turn: 				# $a0 = num du joueur 
 
 	# Affiche le debut d'un nouveau tour pour le joueur en parametre
 
@@ -438,7 +448,7 @@ print_new_turn: 			# $a0 = num du joueur
 
 #--------------------#
 
-get_nb_piece_to_move:		# $a0 = coord case x, $a1 = coord case y
+get_nb_piece_to_move:			# $a0 = coord case x, $a1 = coord case y
 
 	# $v0 = nb pieces présent sur la case
 
@@ -476,7 +486,7 @@ get_nb_piece_to_move:		# $a0 = coord case x, $a1 = coord case y
 
 #--------------------#
 
-can_player_choose_move:		# $a0 = coord x, $a1 = coord y, $a2 = nb pieces, $a3 = direction
+can_player_choose_move:			# $a0 = coord x, $a1 = coord y, $a2 = nb pieces, $a3 = direction
 
 	# $v0 = 1 si deplacement possible, 0 sinon
 
@@ -511,3 +521,4 @@ can_player_choose_move:		# $a0 = coord x, $a1 = coord y, $a2 = nb pieces, $a3 = 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
 	jr $ra 				# go back to caller
+

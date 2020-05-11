@@ -57,7 +57,7 @@ phrase_victoire_2: .asciiz " qui a gagné !"
 # ---------------------------------------------------------------------------
 
 	.globl print_game
-print_game:			# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
+print_game:					# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
 
 	# Affiche l'etat complet du jeu
 
@@ -104,7 +104,6 @@ print_winner: 				# $a0 = joueur gagnant
 	jr $ra
 
 
-
 #--------------------#
 
 	.globl print_new_line
@@ -121,7 +120,7 @@ print_new_line:				# NULL
 #--------------------#
 
 	.globl print_pipe
-print_pipe:				# NULL
+print_pipe:					# NULL
 
 	# Affiche une pipe (|) dans la console
 
@@ -142,7 +141,6 @@ print_space:				# NULL
 	li $v0, 11
 	syscall
 	jr $ra
-
 
 
 # ---------------------------------------------------------------------------
@@ -273,7 +271,7 @@ print_plateau:				# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin,
 
 #--------------------#
 
-print_stock:		# NULL
+print_stock:				# NULL
 		
 	# Affiche le stock de chaque joueur
 
@@ -319,5 +317,3 @@ print_stock:		# NULL
 	addi $sp, $sp, 4	# move stack pointer
 	jr $ra
 
-
-#--------------------#

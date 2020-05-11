@@ -103,34 +103,133 @@ init_reserve: 				# NULL
 
 #--------------------#
 
-	# TODO
 	.globl move_pieces
-move_pieces:				# $a0 = num case depart, $a1 = num case arrivé, $a2 = nb pieces
+move_pieces:				# $a0 = num case depart, $a1 = num case arrivé, $a2 = nb pieces, $a3 = num joueur
 
-	# Met a jour la memoire pour representer le deplacement des pieces
+	# $v0 = le nb de pieces a ajouter à la reserve
+	# $v1 = le num du joueur qui gagne les pieces en reserve
 
-	sub $sp, $sp, 4		# move stack pointer
-	sw $ra, 0($sp)		# save $ra in stack
+	sub $sp, $sp, 8		# move stack pointer
+	sw $ra, 4($sp)		# save $ra in stack
+	sw $a0, 0($sp)		# save $a0 in stack
 
-	
+	la $t0, plateau
+	sll $s0, $a0, 1 	# *2 pour des half
+	add $s0, $t0, $s0
+	lh $s0, 0($s0)		# case de depart
+	ori $a0, $s0, 0
+	jal get_nb_pieces_in_cell
+	ori $t0, $v0, 0
+	sub $t0, $t0, $a2
+	sll $t0, $t0, 1 	# *2 pour des pieces de 2 bit
+	srlv $s0, $s0, $t0 	# recuperer les pieces a deplacer
 
-	lw $ra, 0($sp)		# get $ra from stack
-	add $sp, $sp, 4		# move stack pointer
+	la $t0, plateau
+	sll $s1, $a1, 1 	# *2 pour des half
+	add $s1, $t0, $s1
+	lh $s1, 0($s1)		# case d'arrivé
+	ori $a0, $s1, 0
+	jal get_nb_pieces_in_cell
+	ori $t0, $v0, 0
+	sll $t0, $t0, 1		# *2 pour des pieces de 2 bit
+	sllv $s0, $s0, $t0 	# deplacer les pieces de la case d'origine
+	or $s0, $s0, $s1	# la pile complete
+
+	li $s2, 0
+	move_pieces_WHILE:
+	ori $a0, $s0, 0
+	jal get_nb_pieces_in_cell
+	addi $v0, $v0, -5
+	blez $v0, move_pieces_END_WHILE
+
+	andi $t0, $s0, 3	# recuperer les 2 derniers bit : la dernière piece
+	srl $s0, $s0, 2
+	bne $t0, $a3, move_pieces_WHILE
+
+	addi $s2, $s2, 1
+	j move_pieces_WHILE
+	move_pieces_END_WHILE:
+
+	la $t0, plateau
+	sll $s1, $a1, 1 	# *2 pour des half
+	add $s1, $t0, $s1
+	sh $s0, 0($s1)		# stocker la nouvelle pile dans la case d'arrivé
+
+	lw $a0, 0($sp)
+	add $t0, $t0, $a0
+	add $t0, $t0, $a0 	# *2 car les cases sont des halfs
+	lh $s0, 0($t0)
+	ori $a0, $s0, 0
+	jal get_nb_pieces_in_cell
+	ori $t0, $v0, 0
+	sub $t0, $t0, $a2
+	sll $t0, $t0, 1 	# *2
+	li $t1, 1
+	sllv $t0, $t1, $t0
+	addi $t0, $t0, -1
+	and $s0, $s0, $t0 	# recuperer que les n dernières pieces de la case
+
+	la $t0, plateau
+	lw $a0, 0($sp)
+	add $t0, $t0, $a0
+	add $t0, $t0, $a0 	# *2 car les cases sont des halfs
+	sh $s0, 0($t0)		# stocker la nouvelle pile dans la case de depart
+
+	ori $v0, $s2, 0
+	ori $v1, $a3, 0
+
+	lw $ra, 4($sp)		# get $ra from stack
+	lw $a0, 0($sp)		# get $a0 from stack
+	add $sp, $sp, 8		# move stack pointer
 	jr $ra 				# go back to caller
 
 
 #--------------------#
 
 	# TODO
+	.globl drop_pieces
+drop_pieces:				# $a0 = coord x case depot, $a1 = coord y case depot, $a2 = nb pieces, $a3 = num joueur
+
+	# $v0 = le nb de pieces a retirer de la reserve
+	# $v1 = le num du joueur
+
+
+#--------------------#
+
 	.globl test_victory
 test_victory: 				# NULL
 
-	# $v0 = 0 si personne n'a gagne, 1 si victoire du j1, 2 si victoire du j2
+	# $v0 = 0 si personne n'a gagné, 1 si victoire du j1, 2 si victoire du j2
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
 
-	
+	li $a0, 1
+	jal can_move_piece
+	ori $s0, $v0, 0
+	jal get_nb_piece_to_drop
+	or $s0, $s0, $v0
+	beqz $s0, test_victory_IF_1		# test si j1 a perdu
+
+	li $a0, 2
+	jal can_move_piece
+	ori $s0, $v0, 0
+	jal get_nb_piece_to_drop
+	or $s0, $s0, $v0
+	beqz $s0, test_victory_IF_2		# test si j2 a perdu
+
+	li $v0, 0						# si personne n'a perdu alors $v0 = 0
+	j test_victory_IF_END
+
+	test_victory_IF_1:				# si j1 a perdu alors victoire de j2
+	li $v0, 2
+	j test_victory_IF_END
+
+	test_victory_IF_2:				# # si j2 a perdu alors victoire de j1
+	li $v0, 1
+	j test_victory_IF_END
+
+	test_victory_IF_END:
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
@@ -140,7 +239,7 @@ test_victory: 				# NULL
 #--------------------#
 
 	.globl can_move_piece
-can_move_piece: 				# a0 = num joueur
+can_move_piece: 			# a0 = num joueur
 
 	# $v0 = 0 le joueur ne peut plus deplacer de pieces, 1 sinon
 
@@ -180,7 +279,7 @@ can_move_piece: 				# a0 = num joueur
 #--------------------#
 	
 	.globl player_posses_cell
-player_posses_cell:		# $a0 = num du joueur, $a1 = coord x de la case, $a2 = coord y de la case
+player_posses_cell:			# $a0 = num du joueur, $a1 = coord x de la case, $a2 = coord y de la case
 
 	# $v0 = Renvoie 0 le joueur ne peut pas deplacer les pieces de cette case ou 1 si il le peut
 
@@ -233,6 +332,23 @@ get_nb_piece_to_drop:		# $a0 = num du joueur
 	add $t0, $t0, $a0
 	subi $t0, $t0, 1
 	lb $v0, 0($t0)
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
+
+
+#--------------------#
+	# TODO
+	.globl change_reserve_player
+change_reserve_player: 				# a0 = num player, a1 = nb pieces difference
+
+	# Met a jour la reserve du joueur
+
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack	
+
+
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer
@@ -312,6 +428,29 @@ get_deposit_cell:			# $a0 = coord x depart, $ a1 = coord y depart, $a2 = nb piec
 
 #--------------------#
 
+get_nb_pieces_in_cell:		# $a0 = case
+
+	# $v0 = nb pieces
+
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack
+
+	ori $t0, $a0, 0
+	li $v0, 0
+
+	get_nb_pieces_in_cell_WHILE:
+	beqz $t0, get_nb_pieces_in_cell_END_WHILE
+
+	addi $v0, $v0, 1
+	srl $t0, $t0, 2
+	j get_nb_pieces_in_cell_WHILE
+
+	get_nb_pieces_in_cell_END_WHILE:
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
+
 
 
 
@@ -405,4 +544,8 @@ get_deposit_cell:			# $a0 = coord x depart, $ a1 = coord y depart, $a2 = nb piec
 
 	
 
-#PRINT: j'aime trop kenza, kenza ma vie, love you kenza, kenza c'est la meilleure, je suis trop centent de la connaitre, c'est trop cool, Kenza est cool, MIPS c'est pas cool haha haha haha vive kenza, kenza est vrmt la meilleure, elle ecoute pas les rageux du genre 'AMINATA' LOL, waw kenza est trop belle je l'adore ! Je suis Tristqn et je suis nul, aller hop c'est cadeau
+#PRINT: j'aime trop kenza, kenza ma vie, love you kenza, kenza c'est la meilleure,
+# je suis trop centent de la connaitre, c'est trop cool, Kenza est cool,
+# MIPS c'est pas cool haha haha haha vive kenza, kenza est vrmt la meilleure,
+# elle ecoute pas les rageux du genre 'AMINATA' LOL, waw kenza est trop belle je l'adore !
+# Je suis Tristqn et je suis nul, aller hop c'est cadeau
