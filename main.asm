@@ -78,7 +78,7 @@ test:
 	jal print_new_line
 
 	li $a0, 1
-	jal test_can_move 	# test test_can_move
+	jal can_move_piece 	# test can_move_piece
 	ori $a0, $v0, 0
 	li $v0, 1
 	syscall

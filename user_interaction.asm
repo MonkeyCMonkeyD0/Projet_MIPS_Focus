@@ -75,7 +75,7 @@ ask_player_action: 				# $a0 = num du joueur
 	jal get_nb_piece_to_drop 		# Pour voir s'il a des pièces en réserve
 	beqz $v0, ask_player_action_IF 	# Si pas de pièces, pas de choix
 
-	jal test_can_move				# Pour voir s'il a des pièces à déplacer
+	jal can_move_piece				# Pour voir s'il a des pièces à déplacer
 	addi $v0, $v0, 1				# switch 0 and 1
 	andi $v0, $v0, 1
 	bnez $v0, ask_player_action_IF 	# Si pas de pièces, pas de choix
@@ -472,25 +472,6 @@ get_nb_piece_to_move:		# $a0 = coord case x, $a1 = coord case y
 	lw $ra, 0($sp)		# get $ra from stack
 	addi $sp, $sp, 4	# move stack pointer
 	jr $ra
-
-
-#--------------------#
-
-get_nb_piece_to_drop:		# $a0 = num du joueur
-
-	# $v0 = nb dans la reserve du joueur
-
-	sub $sp, $sp, 4		# move stack pointer
-	sw $ra, 0($sp)		# save $ra in stack
-
-	la $t0, reserve
-	add $t0, $t0, $a0
-	subi $t0, $t0, 1
-	lb $v0, 0($t0)
-
-	lw $ra, 0($sp)		# get $ra from stack
-	add $sp, $sp, 4		# move stack pointer
-	jr $ra 				# go back to caller
 
 
 #--------------------#
