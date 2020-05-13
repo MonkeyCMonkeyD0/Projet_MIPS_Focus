@@ -23,6 +23,8 @@ directions: .asciiz "^: 8", "<: 6", ">: 4", "v: 2" 	# 5 ascii par string.
 
 phrase_nb_piece_deplacement: .asciiz ") ? ", "Combien de pièces voulez vous déplacer (entre 1 et " # 5 ascii pour la 1er string.
 
+phrase_nb_piece_depot: .asciiz ") ? ", "Combien de pièces voulez vous déposer (entre 1 et " # 5 ascii pour la 1er string.
+
 	.align 2
 
 # ---------------------------------------------------------------------------
@@ -397,7 +399,7 @@ ask_player_cell_drop:			# NULL
 
 
 #--------------------#
-	# TODO
+
 	.globl ask_player_nb_pieces_drop
 ask_player_nb_pieces_drop:		# $a0 = num joueur
 
@@ -406,7 +408,48 @@ ask_player_nb_pieces_drop:		# $a0 = num joueur
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack	
 
-	
+	jal get_nb_piece_to_drop
+	ori $s0, $v0, 0		# nb de pion en reserve
+	li $t0, 5
+	ble $s0, $t0, ask_player_nb_pieces_drop_IF_1
+	ori $s0, $t0, 0		# min(reserver,5)
+	ask_player_nb_pieces_drop_IF_1:
+	ori $s1, $a0, 0
+
+	ask_player_nb_pieces_drop_WHILE:
+	jal print_new_line
+
+	la $a0, phrase_nb_piece_depot
+	addi $a0, $a0, 5	# $a0 = adresse de la seconde ch. de chara	
+	li $v0, 4
+	syscall
+
+	ori $a0, $s0, 0		# print nb max de pieces
+	li $v0, 1
+	syscall
+
+	la $a0, phrase_nb_piece_deplacement
+	li $v0, 4
+	syscall
+
+	li $v0, 5
+	syscall
+
+	blez $v0, ask_player_nb_pieces_drop_IF_2
+
+	ble $v0, $s0, ask_player_nb_pieces_drop_END_WHILE	# if valeur fourni ok on saute à la fin
+
+	ask_player_nb_pieces_drop_IF_2:
+	jal print_new_line									# sinon on affiche une erreur et on recommence
+	la $a0, phrase_error
+	li $v0, 4
+	syscall
+	jal print_new_line
+
+	j ask_player_nb_pieces_drop_WHILE
+
+	ask_player_nb_pieces_drop_END_WHILE:
+	ori $a0, $s1, 0
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer

@@ -129,8 +129,8 @@ test:
 	jal print_new_line
 	li $a0, 0
 	li $a1, 0
-	li $a2, 2
-	li $a3, 1
+	li $a2, 5
+	li $a3, 2
 	jal drop_pieces	# test drop_pieces
 	ori $a0, $v0, 0
 	li $v0, 1
@@ -140,7 +140,17 @@ test:
 
 	jal print_new_line
 	jal print_game
-	
+
+#	li $a0, 3
+#	li $a1, 0
+#	jal set_reserve
+
+	li $a0, 1
+	jal ask_player_nb_pieces_drop 	# test ask_player_nb_pieces_drop
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
+
 
 	j main
 

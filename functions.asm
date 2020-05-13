@@ -8,7 +8,7 @@
 	.align 0
 
 	.globl plateau
-plateau: .space 72		# stockage : un half pour une case soit 16 bits pour 5 pions => pion sur 2 bit [01] 1 (+) / [10] 2 (*) / [00] vide
+plateau: .space 72	# stockage : un half pour une case soit 16 bits pour 5 pions => pion sur 2 bit [01] 1 (+) / [10] 2 (*) / [00] vide
 	.globl reserve
 reserve: .byte 0, 0
 
