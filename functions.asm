@@ -186,12 +186,66 @@ move_pieces:				# $a0 = num case depart, $a1 = num case arrivé, $a2 = nb pieces
 
 #--------------------#
 
-	# TODO
 	.globl drop_pieces
 drop_pieces:				# $a0 = coord x case depot, $a1 = coord y case depot, $a2 = nb pieces, $a3 = num joueur
 
 	# $v0 = le nb de pieces a retirer de la reserve
 	# $v1 = le num du joueur
+
+	sub $sp, $sp, 8		# move stack pointer
+	sw $ra, 4($sp)		# save $ra in stack
+	sw $a0, 0($sp)		# save $a0 in stack	
+
+	ori $t0, $a0, 0
+	sll $t1, $a1, 1 	# *2
+	add $t0, $t0, $t1
+	sll $t1, $t1, 1		# *2
+	add $t0, $t0, $t1 	# $t0 = x + 6*y
+
+	la $t1, plateau
+	add $s1, $t0, $t1
+	lh $s0, 0($s1)
+
+	li $s2, 0
+	li $t1, 0
+	drop_pieces_FOR:
+	sll $t1, $t1, 2
+	add $t1, $t1, $a3
+	addi $s2, $s2, 1
+	bne $s2, $a2, drop_pieces_FOR
+
+	ori $s2, $t1, 0
+	ori $a0, $s0, 0
+	jal get_nb_pieces_in_cell
+	ori $t0, $v0, 0
+	sll $t0, $t0, 1 	# *2 car piece sur 2 bit
+	sllv $s2, $s2, $t0
+	add $s0, $s0, $s2
+
+	li $s2, 0
+	drop_pieces_WHILE:
+	ori $a0, $s0, 0
+	jal get_nb_pieces_in_cell
+	addi $v0, $v0, -5
+	blez $v0, drop_pieces_END_WHILE
+
+	andi $t0, $s0, 3	# recuperer les 2 derniers bit : la dernière piece
+	srl $s0, $s0, 2
+	bne $t0, $a3, drop_pieces_WHILE
+
+	addi $s2, $s2, 1
+	j drop_pieces_WHILE
+	drop_pieces_END_WHILE:
+
+	sh $s0, 0($s1)
+	ori $v1, $a3, 0
+
+	sub $v0, $s2, $a2
+
+	sw $a0, 0($sp)		# get $a0 from stack	
+	lw $ra, 4($sp)		# get $ra from stack
+	add $sp, $sp, 8		# move stack pointer
+	jr $ra 				# go back to caller
 
 
 #--------------------#
@@ -339,16 +393,22 @@ get_nb_piece_to_drop:		# $a0 = num du joueur
 
 
 #--------------------#
-	# TODO
+	
 	.globl change_reserve_player
-change_reserve_player: 				# a0 = num player, a1 = nb pieces difference
+change_reserve_player: 				# a0 = num player, $a1 = nb pieces difference
 
 	# Met a jour la reserve du joueur
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack	
 
+	la $t0, reserve
+	add $t0, $a0, $t0
+	addi $t0, $t0, -1
+	lb $t1, 0($t0)
 
+	add $t1, $t1, $a1
+	lb $t1, 0($t0)
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer

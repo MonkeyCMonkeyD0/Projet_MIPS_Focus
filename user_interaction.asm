@@ -403,7 +403,14 @@ ask_player_nb_pieces_drop:		# $a0 = num joueur
 
 	# $v0 = nb pieces
 
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack	
+
 	
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
 
 
 # ---------------------------------------------------------------------------

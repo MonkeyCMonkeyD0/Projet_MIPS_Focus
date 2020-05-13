@@ -124,7 +124,23 @@ test:
 	syscall
 
 	jal print_new_line
-	jal print_game		# test print_game
+	jal print_game
+
+	jal print_new_line
+	li $a0, 0
+	li $a1, 0
+	li $a2, 2
+	li $a3, 1
+	jal drop_pieces	# test drop_pieces
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
+	ori $a0, $v1, 0
+	syscall
+
+	jal print_new_line
+	jal print_game
+	
 
 	j main
 
