@@ -69,11 +69,13 @@ ask_player_action: 				# $a0 = num du joueur
 
 	# $v0 = Choix du player : 0 pour move et 1 pour drop(de la reserve)
 
-	sub $sp, $sp, 4		# move stack pointer
-	sw $ra, 0($sp)		# save $ra in stack
+	sub $sp, $sp, 8		# move stack pointer
+	sw $ra, 4($sp)		# save $ra in stack
+	sw $a0, 0($sp)
 
 	jal print_new_turn
 
+	lw $a0, 0($sp)
 	jal get_nb_piece_to_drop 		# Pour voir s'il a des pièces en réserve
 	beqz $v0, ask_player_action_IF 	# Si pas de pièces, pas de choix
 
@@ -81,8 +83,6 @@ ask_player_action: 				# $a0 = num du joueur
 	addi $v0, $v0, 1				# switch 0 and 1
 	andi $v0, $v0, 1
 	bnez $v0, ask_player_action_IF 	# Si pas de pièces, pas de choix
-	
-	ori $t0, $a0, 0
 
 	ask_player_action_WHILE:
 	la $a0, phrase_choix_action
@@ -103,8 +103,8 @@ ask_player_action: 				# $a0 = num du joueur
 
 	ask_player_action_IF:
 
-	lw $ra, 0($sp)		# get $ra from stack
-	add $sp, $sp, 4		# move stack pointer
+	lw $ra, 4($sp)		# get $ra from stack
+	add $sp, $sp, 8		# move stack pointer
 	jr $ra 				# go back to caller
 
 
@@ -116,10 +116,9 @@ ask_player_cell_move:			# $a0 = num du joueur
 	# $v0 = Renvoie la coordonnée x de la case valide selectionnée
 	# $v1 = Renvoie la coordonnée y de la case valide selectionnée
 
-	sub $sp, $sp, 4		# move stack pointer
-	sw $ra, 0($sp)		# save $ra in stack
-
-	sub $t0, $a0, 1
+	sub $sp, $sp, 8		# move stack pointer
+	sw $ra, 4($sp)		# save $ra in stack
+	sw $a0, 0($sp)		# save $a0 in stack
 	
 	ask_player_cell_move_WHILE:
 	jal print_new_line
@@ -159,7 +158,7 @@ ask_player_cell_move:			# $a0 = num du joueur
 	and $t2, $t2, $t1
 	beqz $t2, ask_player_cell_move_IF 	# if cell does not exist skip to ask_player_cell_move_IF
 
-	addi $a0, $t0, 1
+	lw $a0, 0($sp)
 	jal player_posses_cell
 
 	beqz $v0, ask_player_cell_move_IF 	# if good cell then skip to ask_player_cell_move_END_IF
@@ -177,8 +176,8 @@ ask_player_cell_move:			# $a0 = num du joueur
 	ori $v0, $a1, 0
 	ori $v1, $a2, 0
 
-	lw $ra, 0($sp)		# get $ra from stack
-	add $sp, $sp, 4		# move stack pointer
+	lw $ra, 4($sp)		# get $ra from stack
+	add $sp, $sp, 8		# move stack pointer
 	jr $ra
 
 
@@ -516,7 +515,7 @@ get_nb_piece_to_move:			# $a0 = coord case x, $a1 = coord case y
 	la $t1, plateau
 	add $t1, $t1, $t0 	# recupere l'adresse de la case
 	lh $t0, 0($t1)		# recupere le contenu de la case
-	li $t0, 0
+	li $t2, 0
 
 	get_nb_piece_to_move_WHILE:
 	andi $t1, $t0, 3

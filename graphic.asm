@@ -55,7 +55,7 @@ phrase_victoire_2: .asciiz " qui a gagné !"
 # ---------------------------------------------------------------------------
 # 		Public	 	(.globl)
 # ---------------------------------------------------------------------------
-
+	# TODO editer la fonction pour afficher toutes les directions possibles
 	.globl print_game
 print_game:					# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
 

@@ -293,7 +293,7 @@ test_victory: 				# NULL
 #--------------------#
 
 	.globl can_move_piece
-can_move_piece: 			# a0 = num joueur
+can_move_piece: 			# $a0 = num joueur
 
 	# $v0 = 0 le joueur ne peut plus deplacer de pieces, 1 sinon
 
@@ -395,7 +395,7 @@ get_nb_piece_to_drop:		# $a0 = num du joueur
 #--------------------#
 	
 	.globl change_reserve_player
-change_reserve_player: 				# a0 = num player, $a1 = nb pieces difference
+change_reserve_player: 		# $a0 = num player, $a1 = nb pieces difference
 
 	# Met a jour la reserve du joueur
 
@@ -415,11 +415,42 @@ change_reserve_player: 				# a0 = num player, $a1 = nb pieces difference
 	jr $ra 				# go back to caller
 
 
+#--------------------#
+
+	.globl get_landing_cell
+get_landing_cell:			# $a0 = coord x depart, $a1 = coord y depart, $a2 = nb pieces, $a3 = direction
+
+	# $v0 = case de depart
+	# $v1 = case d'arrivé
+
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack	
+
+	jal get_deposit_cell
+	addi $v0, $v0, -1
+	addi $v1, $v1, -1
+	sll $v1, $v1, 1
+	add $v0, $v0, $v1
+	sll $v1, $v1, 1
+	add $v1, $v0, $v1
+
+	addi $v0, $a0, -1
+	addi $t0, $a1, -1
+	sll $t0, $t0, 1
+	add $v0, $v0, $t0
+	sll $t0, $t0, 1
+	add $v0, $v0, $t0
+
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
+
+
 # ---------------------------------------------------------------------------
 # 		Private
 # ---------------------------------------------------------------------------
 
-set_reserve: 				# a0 = reserve de j1, a1 = reserve de j2
+set_reserve: 				# $a0 = reserve de j1, $a1 = reserve de j2
 
 	# Met a jour la reserve de chaque joueur
 
@@ -455,6 +486,7 @@ get_deposit_cell:			# $a0 = coord x depart, $ a1 = coord y depart, $a2 = nb piec
 	sw $ra, 0($sp)		# save $ra in stack
 
 	srl $t1, $a3, 1
+	andi $t1, $t1, 1
 	beqz $t1, get_deposit_cell_IF_1
 	ori $t0, $a0, 0
 	j get_deposit_cell_END_IF_1
@@ -463,7 +495,7 @@ get_deposit_cell:			# $a0 = coord x depart, $ a1 = coord y depart, $a2 = nb piec
 	get_deposit_cell_END_IF_1:
 
 	xor $t1, $a3, $t1
-	and $t1, $t1, 1
+	andi $t1, $t1, 1
 	beqz $t1, get_deposit_cell_IF_2
 	sub $t0, $t0, $a2
 	j get_deposit_cell_END_IF_2
@@ -472,6 +504,7 @@ get_deposit_cell:			# $a0 = coord x depart, $ a1 = coord y depart, $a2 = nb piec
 	get_deposit_cell_END_IF_2:
 
 	srl $t1, $a3, 1
+	andi $t1, $t1, 1
 	beqz $t1, get_deposit_cell_IF_3
 	ori $v0, $t0, 0
 	ori $v1, $a1, 0
