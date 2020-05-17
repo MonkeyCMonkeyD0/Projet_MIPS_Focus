@@ -14,7 +14,7 @@ main:
 	
 	jal init_plateau
 	jal init_reserve
-	li $t0, 2			# starting player
+	li $t0, 1			# starting player
 	sub $sp, $sp, 4
 	sw $t0, 0($sp)
 

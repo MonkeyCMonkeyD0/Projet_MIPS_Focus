@@ -196,13 +196,15 @@ drop_pieces:				# $a0 = coord x case depot, $a1 = coord y case depot, $a2 = nb p
 	sw $ra, 4($sp)		# save $ra in stack
 	sw $a0, 0($sp)		# save $a0 in stack	
 
-	ori $t0, $a0, 0
-	sll $t1, $a1, 1 	# *2
+	addi $t0, $a0, -1	# coord x = $a0 - 1
+	addi $t1, $a1, -1	# coord y = $a1 - 1
+	sll $t1, $t1, 1 	# *2
 	add $t0, $t0, $t1
 	sll $t1, $t1, 1		# *2
 	add $t0, $t0, $t1 	# $t0 = x + 6*y
 
 	la $t1, plateau
+	sll $t0, $t0, 1		# *2 car half
 	add $s1, $t0, $t1
 	lh $s0, 0($s1)
 
@@ -313,7 +315,7 @@ can_move_piece: 			# $a0 = num joueur
 	mflo $a1
 	mfhi $a2
 	jal player_posses_cell
-	or $s0, $s0, $v0 		# test si possede la case sans ecraser les resultats precedants
+	or $s0, $s0, $v0 		# test si possède la case sans écraser les resultats précedants
 
 	bnez $s0, can_move_piece_IF		# quitter la boucle si on trouver une case qui correspond
 	addi $s1, $s1, 1
@@ -403,12 +405,12 @@ change_reserve_player: 		# $a0 = num player, $a1 = nb pieces difference
 	sw $ra, 0($sp)		# save $ra in stack	
 
 	la $t0, reserve
-	add $t0, $a0, $t0
+	add $t0, $t0, $a0
 	addi $t0, $t0, -1
 	lb $t1, 0($t0)
 
 	add $t1, $t1, $a1
-	lb $t1, 0($t0)
+	sb $t1, 0($t0)
 
 	lw $ra, 0($sp)		# get $ra from stack
 	add $sp, $sp, 4		# move stack pointer

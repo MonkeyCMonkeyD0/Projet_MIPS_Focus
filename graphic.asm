@@ -12,7 +12,7 @@ affichage_grille: .asciiz "+------------------+------------------+--------------
 
 affichage_stock_1: .asciiz " - le "
 affichage_stock_2: .asciiz " possède "
-affichage_stock_3: .asciiz " pièces en resérve."
+affichage_stock_3: .asciiz " pièces en reserve."
 
 phrase_victoire_1: .asciiz "Felicitation au "
 phrase_victoire_2: .asciiz " qui a gagné !"
