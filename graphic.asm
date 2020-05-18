@@ -55,16 +55,16 @@ phrase_victoire_2: .asciiz " qui a gagné !"
 # ---------------------------------------------------------------------------
 # 		Public	 	(.globl)
 # ---------------------------------------------------------------------------
-	# TODO editer la fonction pour afficher toutes les directions possibles
+
 	.globl print_game
-print_game:					# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
+print_game:					# $a0 = case depart, $a1 = nb directions possible, $a2 = cases d'arrives encodé sur 6 bit car case
 
 	# Affiche l'etat complet du jeu
 
 	sub $sp, $sp, 4		# move stack pointer
 	sw $ra, 0($sp)		# save $ra in stack
 
-	jal print_plateau
+	jal print_plateau2
 	jal print_stock
 
 	lw $ra, 0($sp)
@@ -149,7 +149,7 @@ print_space:				# NULL
 
 print_plateau:				# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin, $a3 = coord y fin
 
-	# Affiche le plateau de jeu avec les pieces qu'il contient ainsi que la reserve
+	# Affiche le plateau de jeu avec les pieces qu'il contient
 
 	sub $sp, $sp, 20	# move stack pointer
 	sw $ra, 16($sp)		# save $ra in stack
@@ -266,6 +266,124 @@ print_plateau:				# $a0 = coord x debut, $a1 = coord y debut, $a2 = coord x fin,
 
 	lw $ra, 16($sp)		# take $ra from stack
 	addi $sp, $sp, 20	# move stack pointer
+	jr $ra
+
+
+#--------------------#
+	.globl print_plateau2
+print_plateau2:				# $a0 = case depart, $a1 = nb directions possible, $a2 = cases d'arrives encodé sur 6 bit car case
+
+	# Affiche le plateau de jeu avec les pieces qu'il contient
+
+	sub $sp, $sp, 16	# move stack pointer
+	sw $ra, 12($sp)		# save $ra in stack
+	sw $a0, 8($sp)		# save $a0 in stack
+	sw $a1, 4($sp)		# save $a1 in stack
+	sw $a2, 0($sp)		# save $a2 in stack
+
+	la $a1, plateau
+	la $a2, affichage_grille
+	la $a3, affichage_case
+	li $t0, 0		# Indice pour parcourir les lignes
+	li $t1, 36		# Indice final
+	li $t2, 6		# nb modulo
+	li $t3, 5		# modulo du dernier element d'une ligne
+
+	print_plateau2_FOR:
+	li $t2, 6
+	div $t0, $t2
+	mfhi $t4
+	bne $t4, $zero, print_plateau2_NEXT
+				# si au debut d'une ligne on print la ligne et un \n
+	move $a0, $a2
+	li $v0, 4
+	syscall
+	jal print_new_line
+	jal print_pipe
+
+	print_plateau2_NEXT:
+	li $v0, 4
+	sll $t5, $t0, 1
+	add $t5, $t5, $a1
+	lh $t5, 0($t5)
+
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3
+	syscall				# premier pion de la case
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall				# second pion de la case
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall				# 3eme pion de la case
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall				# 4eme pion de la case
+
+	srl $t5, $t5, 2		# retirer les 2 bits de poids faible
+	andi $t6, $t5, 3	# 2 bit de poids faible = mod 4
+	sll $t6, $t6, 2 	# *4
+	add $a0, $t6, $a3	# print affichage_case[$t6]
+	syscall				# dernier pion de la case
+
+	lw $t6, 8($sp)		# recupere la case de depart
+	beq $t6, $t0, print_plateau2_SWITCH_1
+
+	lw $t6, 0($sp)		# recupere les cases d'arrives
+	lw $t7, 4($sp)		# $t7 = nb cases arrives
+	print_plateau2_FOR_2:
+
+	blez $t7, print_plateau2_END_FOR_2
+	andi $t8, $t6, 0x3F 	# recuperer les 6 dernier bit
+	beq $t8, $t0, print_plateau2_SWITCH_2
+
+	srl $t6, $t6, 6
+	addi $t7, $t7, -1
+	j print_plateau2_FOR_2
+	print_plateau2_END_FOR_2:
+
+	j print_plateau2_SWITCH_default
+
+	print_plateau2_SWITCH_1:
+	addi $a0, $a3, 12	# print "-->"
+	j print_plateau2_END_SWITCH
+
+	print_plateau2_SWITCH_2:
+	addi $a0, $a3, 16	# print "<--"
+	j print_plateau2_END_SWITCH
+
+	print_plateau2_SWITCH_default:
+	addi $a0, $a3, 0	# print "   "
+	j print_plateau2_END_SWITCH
+
+	print_plateau2_END_SWITCH:
+	syscall
+
+	addi $t0, $t0, 1
+
+	jal print_pipe
+	bne $t4, $t3, print_plateau2_FOR
+	jal print_new_line
+	blt $t0, $t1, print_plateau2_FOR
+
+	print_plateau2_END_FOR:
+	move $a0, $a2
+	li $v0, 4
+	syscall
+	jal print_new_line
+
+	lw $ra, 12($sp)		# take $ra from stack
+	addi $sp, $sp, 16	# move stack pointer
 	jr $ra
 
 

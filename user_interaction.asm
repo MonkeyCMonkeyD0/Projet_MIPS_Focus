@@ -82,9 +82,10 @@ ask_player_action: 				# $a0 = num du joueur
 	jal can_move_piece				# Pour voir s'il a des pièces à déplacer
 	addi $v0, $v0, 1				# switch 0 and 1
 	andi $v0, $v0, 1
-	bnez $v0, ask_player_action_IF 	# Si pas de pièces, pas de choix
+	bnez $v0, ask_player_action_IF 	# Si pas de move, pas de choix
 
 	ask_player_action_WHILE:
+	jal print_new_line
 	la $a0, phrase_choix_action
 	li $v0, 4
 	syscall
@@ -98,7 +99,6 @@ ask_player_action: 				# $a0 = num du joueur
 	la $a0, phrase_error
 	li $v0, 4
 	syscall
-	jal print_new_line
 	j ask_player_action_WHILE
 
 	ask_player_action_IF:
@@ -259,6 +259,7 @@ ask_player_direction_move:		# $a0 = coord case x, $a1 = coord case y, $a2 = nb p
 	ask_player_direction_move_FOR:
 
 	srl $t2, $t0, 1
+	andi $t2, $t2, 1
 	beqz $t2, ask_player_direction_move_IF_1
 	add $t1, $zero, $t4
 	j ask_player_direction_move_END_IF_1
@@ -543,6 +544,7 @@ can_player_choose_move:			# $a0 = coord x, $a1 = coord y, $a2 = nb pieces, $a3 =
 	sw $ra, 0($sp)		# save $ra in stack
 
 	srl $t1, $a3, 1
+	andi $t1, $t1, 1
 	beqz $t1, can_player_choose_move_IF_1
 	add $t0, $zero, $a0
 	j can_player_choose_move_END_IF_1
@@ -551,7 +553,7 @@ can_player_choose_move:			# $a0 = coord x, $a1 = coord y, $a2 = nb pieces, $a3 =
 	can_player_choose_move_END_IF_1:
 
 	xor $t1, $a3, $t1
-	and $t1, $t1, 1
+	andi $t1, $t1, 1
 	beqz $t1, can_player_choose_move_IF_2
 	addi $t0, $t0, -1
 	j can_player_choose_move_END_IF_2

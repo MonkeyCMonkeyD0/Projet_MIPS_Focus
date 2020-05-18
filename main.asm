@@ -6,7 +6,9 @@
 
 	.text
 
-	# TODO verifier le depot dans la reserve
+#j test 			# decommenter pour tester des fonctions
+
+
 	.globl main
 main:
 
@@ -19,10 +21,9 @@ main:
 	sw $t0, 0($sp)
 
 	main_WHILE:
-	li $a0, 7
-	li $a1, 7
-	li $a2, 7
-	li $a3, 7
+	li $a0, 36
+	li $a1, 0
+	li $a2, 0
 	jal print_game
 
 	jal test_victory
@@ -33,24 +34,27 @@ main:
 	beqz $v0, main_IF
 
 	jal ask_player_cell_drop
-	sub $sp, $sp, 8
-	sw $v1, 4($sp)
-	sw $v0, 0($sp)
+	addi $v0, $v0, -1	# coord x = $a0 - 1
+	addi $v1, $v1, -1	# coord y = $a1 - 1
+	sll $v1, $v1, 1		# *2
+	add $v0, $v0, $v1
+	sll $v1, $v1, 1		# *2
+	add $a2, $v0, $v1	# $a2 = x + 6*y
 
-	li $a0, 7
-	li $a1, 7
-	lw $a2, 0($sp)
-	lw $a3, 4($sp)
+	sub $sp, $sp, 4
+	sw $a2, 0($sp)
+
+	li $a0, 36
+	li $a1, 1
 	jal print_game
 	jal print_new_line
 
-	lw $a0, 8($sp)
+	lw $a0, 4($sp)
 	jal ask_player_nb_pieces_drop
 	lw $a0, 0($sp)
-	lw $a1, 4($sp)
-	ori $a2, $v0, 0
-	lw $a3, 8($sp)
-	add $sp, $sp, 8
+	ori $a1, $v0, 0
+	lw $a2, 4($sp)
+	add $sp, $sp, 4
 	jal drop_pieces
 	j main_END_IF
 
@@ -62,10 +66,14 @@ main:
 	sw $v1, 8($sp)
 	sw $v0, 4($sp)
 
-	lw $a0, 4($sp)
-	lw $a1, 8($sp)
-	li $a2, 7
-	li $a3, 7
+	addi $v0, $v0, -1	# coord x = $v0 - 1
+	addi $v1, $v1, -1	# coord y = $v1 - 1
+	sll $v1, $v1, 1		# *2
+	add $v0, $v0, $v1
+	sll $v1, $v1, 1		# *2
+	add $a0, $v0, $v1	# $a0 = x + 6*y
+	li $a1, 0
+	li $a2, 0
 	jal print_game
 	jal print_new_line
 
@@ -73,6 +81,24 @@ main:
 	lw $a1, 8($sp)
 	jal ask_player_nb_pieces_move
 	sw $v0, 0($sp)
+
+	lw $a0, 4($sp)
+	lw $a1, 8($sp)
+	lw $a2, 0($sp)
+	jal get_all_landing_cells
+
+	lw $t1, 8($sp)
+	lw $t0, 4($sp)
+	addi $t0, $t0, -1	# coord x = $t0 - 1
+	addi $t1, $t1, -1	# coord y = $t1 - 1
+	sll $t1, $t1, 1		# *2
+	add $t0, $t0, $t1
+	sll $t1, $t1, 1		# *2
+	add $a0, $t0, $t1	# $a0 = x + 6*y
+	ori $a1, $v0, 0
+	ori $a2, $v1, 0
+	jal print_game
+	jal print_new_line
 
 	lw $a0, 4($sp)
 	lw $a1, 8($sp)
@@ -127,6 +153,21 @@ test:
 	li $a2, 6
 	li $a3, 4
 	jal print_game
+
+	li $a0, 3			# test print_plateau2
+	li $a1, 4
+	li $a2, 0x151782
+	jal print_plateau2
+
+	li $a0, 3
+	li $a1, 3
+	li $a2, 1
+	jal get_all_landing_cells 	# test get_all_landing_cells
+	ori $a0, $v0, 0
+	li $v0, 1
+	syscall
+	ori $a0, $v1, 0
+	syscall
 
 	li $a0, 1			# test ask_player_cell
 	jal ask_player_cell_move

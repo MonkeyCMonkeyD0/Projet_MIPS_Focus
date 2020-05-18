@@ -187,7 +187,7 @@ move_pieces:				# $a0 = num case depart, $a1 = num case arrivé, $a2 = nb pieces
 #--------------------#
 
 	.globl drop_pieces
-drop_pieces:				# $a0 = coord x case depot, $a1 = coord y case depot, $a2 = nb pieces, $a3 = num joueur
+drop_pieces:				# $a0 = case depot, $a1 = nb pieces, $a2 = num joueur
 
 	# $v0 = le nb de pieces a retirer de la reserve
 	# $v1 = le num du joueur
@@ -196,14 +196,8 @@ drop_pieces:				# $a0 = coord x case depot, $a1 = coord y case depot, $a2 = nb p
 	sw $ra, 4($sp)		# save $ra in stack
 	sw $a0, 0($sp)		# save $a0 in stack	
 
-	addi $t0, $a0, -1	# coord x = $a0 - 1
-	addi $t1, $a1, -1	# coord y = $a1 - 1
-	sll $t1, $t1, 1 	# *2
-	add $t0, $t0, $t1
-	sll $t1, $t1, 1		# *2
-	add $t0, $t0, $t1 	# $t0 = x + 6*y
-
 	la $t1, plateau
+	ori $t0, $a0, 0
 	sll $t0, $t0, 1		# *2 car half
 	add $s1, $t0, $t1
 	lh $s0, 0($s1)
@@ -212,9 +206,9 @@ drop_pieces:				# $a0 = coord x case depot, $a1 = coord y case depot, $a2 = nb p
 	li $t1, 0
 	drop_pieces_FOR:
 	sll $t1, $t1, 2
-	add $t1, $t1, $a3
+	add $t1, $t1, $a2
 	addi $s2, $s2, 1
-	bne $s2, $a2, drop_pieces_FOR
+	bne $s2, $a1, drop_pieces_FOR
 
 	ori $s2, $t1, 0
 	ori $a0, $s0, 0
@@ -233,16 +227,16 @@ drop_pieces:				# $a0 = coord x case depot, $a1 = coord y case depot, $a2 = nb p
 
 	andi $t0, $s0, 3	# recuperer les 2 derniers bit : la dernière piece
 	srl $s0, $s0, 2
-	bne $t0, $a3, drop_pieces_WHILE
+	bne $t0, $a2, drop_pieces_WHILE
 
 	addi $s2, $s2, 1
 	j drop_pieces_WHILE
 	drop_pieces_END_WHILE:
 
 	sh $s0, 0($s1)
-	ori $v1, $a3, 0
+	ori $v1, $a2, 0
 
-	sub $v0, $s2, $a2
+	sub $v0, $s2, $a1
 
 	sw $a0, 0($sp)		# get $a0 from stack	
 	lw $ra, 4($sp)		# get $ra from stack
@@ -447,6 +441,53 @@ get_landing_cell:			# $a0 = coord x depart, $a1 = coord y depart, $a2 = nb piece
 	add $sp, $sp, 4		# move stack pointer
 	jr $ra 				# go back to caller
 
+
+#--------------------#
+
+	.globl get_all_landing_cells
+get_all_landing_cells:		# $a0 = coord x de depart, $a1 = coord y de depart, $a2 = nb move
+
+	# $v0 = nb case d'arrive
+	# $v1 = list cases d'arrive avec 6 bit par case
+
+	sub $sp, $sp, 4		# move stack pointer
+	sw $ra, 0($sp)		# save $ra in stack	
+
+	li $a3, 1
+	li $s0, 0
+	li $s1, 0
+	get_all_landing_cells_FOR:
+	jal get_deposit_cell
+	li $t0, 6
+	blez $v0, get_all_landing_cells_SKIP		# si x < 1 alors skip
+	blez $v1, get_all_landing_cells_SKIP		# si y < 1 alors skip
+	bgt $v0, $t0, get_all_landing_cells_SKIP	# si x > 6 alors skip
+	bgt $v1, $t0, get_all_landing_cells_SKIP	# si y > 6 alors skip
+
+	addi $v0, $v0, -1		# transformer les coord en num de case
+	addi $v1, $v1, -1
+	sll $v1, $v1, 1
+	add $v0, $v0, $v1
+	sll $v1, $v1, 1
+	add $t0, $v0, $v1
+
+	addi $s0, $s0, 1		# incrementer le nombre de cases
+	sll $s1, $s1, 6
+	andi $t0, $t0, 0x3F		# grader les 6 bit de poids faible
+	add $s1, $s1, $t0 		# ajouter cette case a la liste
+
+	get_all_landing_cells_SKIP:
+	addi $a3, $a3, 1
+	li $t0, 4
+	ble $a3, $t0, get_all_landing_cells_FOR
+
+	ori $v0, $s0, 0
+	ori $v1, $s1, 0
+		
+	lw $ra, 0($sp)		# get $ra from stack
+	add $sp, $sp, 4		# move stack pointer
+	jr $ra 				# go back to caller
+	
 
 # ---------------------------------------------------------------------------
 # 		Private
